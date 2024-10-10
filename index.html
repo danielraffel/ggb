@@ -18,18 +18,15 @@
         <div id="weather" class="bg-white shadow-md rounded-lg p-6 mb-6">
             <h2 class="text-2xl font-semibold mb-4">Current Weather</h2>
             <div id="weather-info" class="text-lg"></div>
+            <div id="sunset-info" class="text-lg mt-2"></div>
         </div>
 
         <div id="future-conditions" class="bg-white shadow-md rounded-lg p-6">
             <h2 class="text-2xl font-semibold mb-4">Future Conditions</h2>
-            <div id="sunset-info" class="text-lg mb-4"></div>
-            <form id="future-weather-form" class="mb-4">
-                <label for="minutes-input" class="block mb-2">Get weather conditions for:</label>
-                <div class="flex items-center">
-                    <input type="number" id="minutes-input" name="minutes" value="120" min="1" max="1440" class="border rounded px-2 py-1 mr-2 w-20">
-                    <span class="mr-2">minutes from now</span>
-                    <button type="submit" id="forecast-button" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Update Forecast</button>
-                </div>
+            <form id="future-weather-form" class="mb-4 flex items-center">
+                <label for="time-input" class="font-bold mr-2">Weather at:</label>
+                <input type="time" id="time-input" name="time" class="border rounded px-2 py-1 mr-2">
+                <button type="submit" id="forecast-button" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Update Forecast</button>
             </form>
             <div id="future-weather-info" class="text-lg"></div>
         </div>
@@ -41,7 +38,7 @@
         const futureWeatherForm = document.getElementById('future-weather-form');
         const futureWeatherInfo = document.getElementById('future-weather-info');
         const forecastButton = document.getElementById('forecast-button');
-        const minutesInput = document.getElementById('minutes-input');
+        const timeInput = document.getElementById('time-input');
 
         async function getWeather() {
             try {
@@ -62,20 +59,26 @@
                 const sunsetTime = new Date(data.daily.sunset[0]);
                 sunsetInfo.innerHTML = `<p>Sunset today: ${sunsetTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</p>`;
 
+                // Set default time for future forecast to 2 hours from now
+                const twoHoursLater = new Date(Date.now() + 2 * 60 * 60 * 1000);
+                timeInput.value = twoHoursLater.toTimeString().slice(0, 5);
+                updateForecast();
             } catch (error) {
                 console.error('Error fetching weather data:', error);
                 weatherInfo.innerHTML = '<p>Unable to fetch weather data. Please try again later.</p>';
             }
         }
 
-        async function getFutureWeather(minutes) {
+        async function getFutureWeather(time) {
             try {
                 const response = await axios.get('https://api.open-meteo.com/v1/forecast?latitude=37.8199&longitude=-122.4783&hourly=temperature_2m,precipitation_probability,windspeed_10m&temperature_unit=fahrenheit&timezone=America/Los_Angeles');
                 const data = response.data;
                 
-                const currentTime = new Date();
-                const futureTime = new Date(currentTime.getTime() + minutes * 60000);
-                const index = Math.floor((futureTime - new Date(data.hourly.time[0])) / (60 * 60 * 1000));
+                const [hours, minutes] = time.split(':').map(Number);
+                const futureTime = new Date();
+                futureTime.setHours(hours, minutes, 0, 0);
+
+                const index = data.hourly.time.findIndex(t => new Date(t).getTime() > futureTime.getTime()) - 1;
 
                 const temperature = data.hourly.temperature_2m[index];
                 const windSpeed = data.hourly.windspeed_10m[index];
@@ -84,7 +87,6 @@
                 const isLikelyToRain = precipitationProbability > 30 ? 'Yes' : 'No';
 
                 futureWeatherInfo.innerHTML = `
-                    <h3 class="font-semibold mb-2">Weather at ${futureTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}:</h3>
                     <p>Temperature: ${temperature}°F</p>
                     <p>Wind Speed: ${windSpeed} mph</p>
                     <p>Likely to Rain: ${isLikelyToRain} (${precipitationProbability}% chance)</p>
@@ -94,10 +96,10 @@
                 futureWeatherInfo.innerHTML = '<p>Unable to fetch future weather data. Please try again later.</p>';
             }
         }
-
+        
         function updateForecast() {
-            const minutes = parseInt(minutesInput.value);
-            getFutureWeather(minutes);
+            const time = timeInput.value;
+            getFutureWeather(time);
         }
 
         getWeather();
@@ -110,11 +112,8 @@
             updateForecast();
         });
 
-        // Initially load future weather for default minutes
-        updateForecast();
-
         // Add event listener for input changes
-        minutesInput.addEventListener('input', function() {
+        timeInput.addEventListener('input', function() {
             forecastButton.textContent = 'Update Forecast';
         });
     </script>
