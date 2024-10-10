@@ -6,23 +6,46 @@
     <title>Golden Gate Bridge Weather</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    <style>
+        @media (min-width: 768px) {
+            .title-desktop {
+                display: block;
+            }
+            .title-mobile {
+                display: none;
+            }
+        }
+        @media (max-width: 767px) {
+            .title-desktop {
+                display: none;
+            }
+            .title-mobile {
+                display: none;  // Changed to hide the mobile title
+            }
+            h2#future-conditions-title {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold mb-6 text-center">Golden Gate Bridge Live</h1>
+        <h1 class="title-desktop text-3xl font-bold mb-6 text-center">Golden Gate Bridge Live</h1>
         
         <div class="mb-8">
             <iframe class="w-full aspect-video" scrolling="no" frameborder="0" allowfullscreen webkitallowfullscreen mozallowfullscreen allow="autoplay; fullscreen" src="https://w3.mp.lura.live/player/prod/v3/anvload.html?key=eyJtIjoiTElOIiwidiI6ImFkc3Qxa1dabWtFZ1hLeDciLCJhbnZhY2siOiJFWm1yUjRFdjV4WW5NZmRiWTVUUGM3bmFLbXkzMk1LcCIsInNoYXJlTGluayI6Imh0dHBzOi8vd3d3Lmtyb240LmNvbS9saXZlLWV2ZW50cy8iLCJwbHVnaW5zIjp7ImNvbXNjb3JlIjp7ImNsaWVudElkIjoiNjAzNjQzOSIsImMzIjoia3JvbjQuY29tIiwic2NyaXB0IjoiLy93My5tcC5sdXJhLmxpdmUvcGxheWVyL3Byb2QvdjMvcGx1Z2lucy9jb21zY29yZS9jb21zY29yZXBsdWdpbi5taW4uanMiLCJ1c2VEZXJpdmVkTWV0YWRhdGEiOnRydWUsIm1hcHBpbmciOnsiYWRsb2FkdHlwZSI6MiwiYWRNb2RlbCI6Mn0sIm9wdE91dCI6ZmFsc2V9LCJzZWdtZW50Q3VzdG9tIjp7InNjcmlwdCI6Imh0dHBzOi8vc2VnbWVudC5wc2cubmV4c3RhcmRpZ2l0YWwubmV0L2FudmF0by5qcyIsIndyaXRlS2V5IjoiUUdOcU9tbVlwaXIwZjVEWGtad2daYThsMnh2YVNJakoiLCJwbHVnaW5zTG9hZGluZ1RpbWVvdXQiOjEyfX0sImh0bWw1Ijp0cnVlLCJ0b2tlbiI6ImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSklVekkxTmlKOS5leUoyYVdRaU9pSmhaSE4wTVd0WFdtMXJSV2RZUzNnM0lpd2lhWE56SWpvaVJWcHRjbEkwUlhZMWVGbHVUV1prWWxrMVZGQmpOMjVoUzIxNU16Sk5TM0FpTENKbGVIQWlPakUyTkRVd05EUXhNamw5LlJBSm1ZbHZSdThueEtKZWwtcUozR3FocjRZcENhcU1qWF9lenZib1FCV0UifQ%3D%3D"></iframe>
         </div>
 
+        <h1 class="title-mobile text-xl font-bold mb-6 text-center">Golden Gate Bridge Live</h1>
+
         <div id="weather" class="bg-white shadow-md rounded-lg p-6 mb-6">
-            <h2 class="text-2xl font-semibold mb-4">Current Weather</h2>
+            <h2 id="current-weather-title" class="text-2xl font-semibold mb-4">Current Weather</h2>
             <div id="weather-info" class="text-lg"></div>
             <div id="sunset-info" class="text-lg mt-2"></div>
         </div>
 
         <div id="future-conditions" class="bg-white shadow-md rounded-lg p-6">
-            <h2 class="text-2xl font-semibold mb-4">Future Conditions</h2>
+            <h2 class="text-2xl font-semibold mb-4 hidden md:block">Future Conditions</h2>
             <div class="mb-4 flex items-center">
                 <label for="time-input" class="font-semibold flex items-center">Weather at: <span class="mr-2"></span></label>
                 <input type="time" id="time-input" name="time" class="border rounded px-2 py-1">
@@ -99,9 +122,23 @@
             getFutureWeather(time);
         }
 
+        function updateCurrentWeatherTitle() {
+            const isMobile = window.innerWidth < 768;
+            const currentWeatherTitle = document.getElementById('current-weather-title');
+            if (isMobile) {
+                currentWeatherTitle.innerHTML = 'Current Weather @ GGB';  // Append text for mobile
+            } else {
+                currentWeatherTitle.innerHTML = 'Current Weather';  // Reset for desktop
+            }
+        }
+
         getWeather();
+        updateCurrentWeatherTitle();  // Call this function after getting weather data
         // Update weather every 10 minutes
-        setInterval(getWeather, 600000);
+        setInterval(() => {
+            getWeather();
+            updateCurrentWeatherTitle();  // Update title on interval
+        }, 600000);
 
         // Add event listener for input changes
         timeInput.addEventListener('change', updateForecast);
