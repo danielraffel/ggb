@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Golden Gate Bridge Weather</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
@@ -47,7 +47,7 @@
         <div id="future-conditions" class="bg-white shadow-md rounded-lg p-6">
             <h2 class="text-2xl font-semibold mb-4 hidden md:block">Future Conditions</h2>
             <div class="mb-4 flex items-center">
-                <label for="time-input" class="font-semibold flex items-center">Weather at: <span class="mr-2"></span></label>
+                <label for="time-input" class="font-semibold flex items-center text-2xl md:text-base">Weather at: <span class="mr-2"></span></label>
                 <input type="time" id="time-input" name="time" class="border rounded px-2 py-1">
             </div>
             <div id="future-weather-info" class="text-lg"></div>
