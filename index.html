@@ -26,14 +26,18 @@
 
         async function getWeather() {
             try {
-                const response = await axios.get('https://api.open-meteo.com/v1/forecast?latitude=37.8199&longitude=-122.4783&current_weather=true&temperature_unit=fahrenheit');
+                const response = await axios.get('https://api.open-meteo.com/v1/forecast?latitude=37.8199&longitude=-122.4783&current_weather=true&temperature_unit=fahrenheit&hourly=precipitation_probability');
                 const data = response.data;
                 const weather = data.current_weather;
+                const currentHour = new Date().getHours();
+                const precipitationProbability = data.hourly.precipitation_probability[currentHour];
+
+                const isLikelyToRain = precipitationProbability > 30 ? 'Yes' : 'No';
 
                 weatherInfo.innerHTML = `
                     <p>Temperature: ${weather.temperature}°F</p>
                     <p>Wind Speed: ${weather.windspeed} mph</p>
-                    <p>Wind Direction: ${weather.winddirection}°</p>
+                    <p>Likely to Rain: ${isLikelyToRain} (${precipitationProbability}% chance)</p>
                 `;
             } catch (error) {
                 console.error('Error fetching weather data:', error);
