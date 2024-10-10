@@ -23,11 +23,10 @@
 
         <div id="future-conditions" class="bg-white shadow-md rounded-lg p-6">
             <h2 class="text-2xl font-semibold mb-4">Future Conditions</h2>
-            <form id="future-weather-form" class="mb-4 flex items-center">
-                <label for="time-input" class="font-bold mr-2">Weather at:</label>
-                <input type="time" id="time-input" name="time" class="border rounded px-2 py-1 mr-2">
-                <button type="submit" id="forecast-button" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Update Forecast</button>
-            </form>
+            <div class="mb-4 flex items-center">
+                <label for="time-input" class="font-semibold flex items-center">Weather at: <span class="mr-2"></span></label>
+                <input type="time" id="time-input" name="time" class="border rounded px-2 py-1">
+            </div>
             <div id="future-weather-info" class="text-lg"></div>
         </div>
     </div>
@@ -35,9 +34,7 @@
     <script>
         const weatherInfo = document.getElementById('weather-info');
         const sunsetInfo = document.getElementById('sunset-info');
-        const futureWeatherForm = document.getElementById('future-weather-form');
         const futureWeatherInfo = document.getElementById('future-weather-info');
-        const forecastButton = document.getElementById('forecast-button');
         const timeInput = document.getElementById('time-input');
 
         async function getWeather() {
@@ -106,16 +103,8 @@
         // Update weather every 10 minutes
         setInterval(getWeather, 600000);
 
-        // Set up form submission for future weather
-        futureWeatherForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            updateForecast();
-        });
-
         // Add event listener for input changes
-        timeInput.addEventListener('input', function() {
-            forecastButton.textContent = 'Update Forecast';
-        });
+        timeInput.addEventListener('change', updateForecast);
     </script>
 </body>
 </html>
