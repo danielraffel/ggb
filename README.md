@@ -1,17 +1,18 @@
 # Golden Gate Bridge Live Weather Viewer
 
-I frequently ride across the Golden Gate Bridge and wanted an easy way to check the current and future conditions so that I can dress appropriately. This page offers a live view of the Golden Gate Bridge along with real-time weather updates and a default two-hour forecast. You can check the current temperature, wind speed, and chance of rain, and if you’re planning to ride back across, you can adjust the forecast time for future weather predictions.
+I frequently ride across the Golden Gate Bridge and wanted an easy way to check the current and future conditions so that I can dress appropriately. This page offers a live view of the Golden Gate Bridge along with real-time weather updates and a customizable future weather forecast. You can check the current temperature, wind speed, and chance of rain, and if you’re planning to ride back across, you can adjust the forecast time based on when you think you'll be riding back across.
 
 ## How to View It
 
-Simply visit [danielraffel.github.io/ggb](https://danielraffel.github.io/ggb) in your browser to view the live stream, current weather conditions, and a future weather forecast 2 hours from now (which you can adjust).
+Simply visit [danielraffel.github.io/ggb](https://danielraffel.github.io/ggb) in your browser to view the live stream, current weather conditions, and a future weather forecast, which can be adjusted to match your ride. The default forecast time is 2 hours ahead, but you can easily change it to see weather conditions at any time during your ride. If you frequently start from the same location, the site will remember the last time difference you set and automatically apply it to the future forecast, overriding the 2-hour default. This makes it convenient to use as a starting page before your ride, without needing to adjust it every time.
 
 ## How It Was Built
 
 - **HTML5** for structuring the page.
 - **[Tailwind CSS](https://tailwindcss.com)** for responsive design.
-- **[Axios](https://axios-http.com/docs/intro)** allows real-time weather data fetching from the [Open-Meteo API](https://open-meteo.com/en/docs).
-- **JavaScript** updates the weather widgets every 10 minutes, keeping the data fresh without needing a page refresh. It also generates a default weather forecast for 2 hours into the future, which users can modify.
+- **[Axios](https://axios-http.com/docs/intro)** for real-time weather data fetching from the [Open-Meteo API](https://open-meteo.com/en/docs).
+- **JavaScript** to update the weather widgets dynamically every 10 minutes, keeping the data fresh without requiring a page refresh.
+- **Local Storage** is used to save your time difference setting, enabling the weather forecast to display based on your customized time preference.
 
 ## What It Does
 
@@ -23,9 +24,8 @@ The page displays:
   - Wind speed (in mph)
   - Probability of rain based on real-time data from the Open-Meteo API
 - **Future Weather Forecast**: 
-  - By default, a 2-hour future forecast is displayed, showing the temperature, wind speed, and likelihood of rain. Users can adjust the time to see weather conditions at different hours.
-
-The weather information is fetched for the Golden Gate Bridge area (latitude: 37.8199, longitude: -122.4783), and is updated every 10 minutes. The future forecast is automatically set for 2 hours into the future but can be adjusted using the input field.
+  - By default, a 2-hour future forecast is displayed, showing the temperature, wind speed, and likelihood of rain. Users can adjust the time input field to see weather conditions at different times.
+  - A time difference display shows how far in the future the selected weather forecast is (e.g., "in 2h").
 
 ## Example Output
 
