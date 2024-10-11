@@ -49,6 +49,7 @@
             <div class="mb-4 flex items-center">
                 <label for="time-input" class="font-semibold flex items-center text-2xl md:text-base">Weather at: <span class="mr-2"></span></label>
                 <input type="time" id="time-input" name="time" class="border rounded px-2 py-1">
+                <span id="time-difference" class="ml-2 text-lg"></span> <!-- Added span for time difference -->
             </div>
             <div id="future-weather-info" class="text-lg"></div>
         </div>
@@ -59,7 +60,23 @@
         const sunsetInfo = document.getElementById('sunset-info');
         const futureWeatherInfo = document.getElementById('future-weather-info');
         const timeInput = document.getElementById('time-input');
-
+    
+        function getDefaultTimeDiff() {
+            const storedDiff = localStorage.getItem('defaultTimeDiff');
+            return storedDiff ? parseInt(storedDiff, 10) : 2 * 60; // Default to 2 hours (120 minutes)
+        }
+    
+        function setDefaultTimeDiff(diff) {
+            localStorage.setItem('defaultTimeDiff', diff.toString());
+        }
+    
+        function setTimeInputFromStoredDiff() {
+            const defaultDiff = getDefaultTimeDiff();
+            const now = new Date();
+            const futureTime = new Date(now.getTime() + defaultDiff * 60000);
+            timeInput.value = futureTime.toTimeString().slice(0, 5);
+        }
+    
         async function getWeather() {
             try {
                 const response = await axios.get('https://api.open-meteo.com/v1/forecast?latitude=37.8199&longitude=-122.4783&current_weather=true&temperature_unit=fahrenheit&hourly=temperature_2m,precipitation_probability,windspeed_10m&daily=sunset&timezone=America/Los_Angeles');
@@ -67,28 +84,26 @@
                 const weather = data.current_weather;
                 const currentHour = new Date().getHours();
                 const precipitationProbability = data.hourly.precipitation_probability[currentHour];
-
+    
                 const isLikelyToRain = precipitationProbability > 30 ? 'Yes' : 'No';
-
+    
                 weatherInfo.innerHTML = `
                     <p>Temperature: ${weather.temperature}°F</p>
                     <p>Wind Speed: ${weather.windspeed} mph</p>
                     <p>Likely to Rain: ${isLikelyToRain} (${precipitationProbability}% chance)</p>
                 `;
-
+    
                 const sunsetTime = new Date(data.daily.sunset[0]);
                 sunsetInfo.innerHTML = `<p>Sunset today: ${sunsetTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</p>`;
-
-                // Set default time for future forecast to 2 hours from now
-                const twoHoursLater = new Date(Date.now() + 2 * 60 * 60 * 1000);
-                timeInput.value = twoHoursLater.toTimeString().slice(0, 5);
+    
+                setTimeInputFromStoredDiff();
                 updateForecast();
             } catch (error) {
                 console.error('Error fetching weather data:', error);
                 weatherInfo.innerHTML = '<p>Unable to fetch weather data. Please try again later.</p>';
             }
         }
-
+    
         async function getFutureWeather(time) {
             try {
                 const response = await axios.get('https://api.open-meteo.com/v1/forecast?latitude=37.8199&longitude=-122.4783&hourly=temperature_2m,precipitation_probability,windspeed_10m&temperature_unit=fahrenheit&timezone=America/Los_Angeles');
@@ -97,15 +112,15 @@
                 const [hours, minutes] = time.split(':').map(Number);
                 const futureTime = new Date();
                 futureTime.setHours(hours, minutes, 0, 0);
-
+    
                 const index = data.hourly.time.findIndex(t => new Date(t).getTime() > futureTime.getTime()) - 1;
-
+    
                 const temperature = data.hourly.temperature_2m[index];
                 const windSpeed = data.hourly.windspeed_10m[index];
                 const precipitationProbability = data.hourly.precipitation_probability[index];
-
+    
                 const isLikelyToRain = precipitationProbability > 30 ? 'Yes' : 'No';
-
+    
                 futureWeatherInfo.innerHTML = `
                     <p>Temperature: ${temperature}°F</p>
                     <p>Wind Speed: ${windSpeed} mph</p>
@@ -120,27 +135,67 @@
         function updateForecast() {
             const time = timeInput.value;
             getFutureWeather(time);
+
+            // Calculate the new time difference, handling AM/PM transitions
+            const [hours, minutes] = time.split(':').map(Number);
+            const now = new Date();
+            let selectedTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
+
+            // If the selected time is earlier than now, it must be for tomorrow
+            if (selectedTime < now) {
+                selectedTime.setDate(selectedTime.getDate() + 1);
+            }
+
+            const diffInMinutes = Math.round((selectedTime - now) / 60000);
+            
+            if (diffInMinutes > 0) {
+                setDefaultTimeDiff(diffInMinutes);
+            }
+
+            // Update the time difference display
+            updateTimeDifferenceDisplay(diffInMinutes);
+
+            console.log(`Time difference set to ${diffInMinutes} minutes`);
+        }
+
+        function updateTimeDifferenceDisplay(diffInMinutes) {
+            // Check if the difference is less than 1 minute
+            if (diffInMinutes < 1) {
+                document.getElementById('time-difference').innerText = 'in 0 minutes';
+                return;
+            }
+
+            const hours = Math.floor(diffInMinutes / 60);
+            const minutes = diffInMinutes % 60;
+            let timeDiffString = '';
+
+            if (hours > 0) {
+                timeDiffString += `${hours} hour${hours > 1 ? 's' : ''}`;
+            }
+            if (minutes > 0) {
+                timeDiffString += (timeDiffString ? ' ' : '') + `${minutes} minute${minutes > 1 ? 's' : ''}`;
+            }
+
+            document.getElementById('time-difference').innerText = `in ${timeDiffString}`;
         }
 
         function updateCurrentWeatherTitle() {
             const isMobile = window.innerWidth < 768;
             const currentWeatherTitle = document.getElementById('current-weather-title');
             if (isMobile) {
-                currentWeatherTitle.innerHTML = 'Current Weather @ GGB';  // Append text for mobile
+                currentWeatherTitle.innerHTML = 'Current Weather @ GGB';
             } else {
-                currentWeatherTitle.innerHTML = 'Current Weather';  // Reset for desktop
+                currentWeatherTitle.innerHTML = 'Current Weather';
             }
         }
-
+    
         getWeather();
-        updateCurrentWeatherTitle();  // Call this function after getting weather data
-        // Update weather every 10 minutes
+        updateCurrentWeatherTitle();
         setInterval(() => {
             getWeather();
-            updateCurrentWeatherTitle();  // Update title on interval
+            updateCurrentWeatherTitle();
         }, 600000);
-
-        // Add event listener for input changes
+    
         timeInput.addEventListener('change', updateForecast);
     </script>
 </body>
