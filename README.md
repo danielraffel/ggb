@@ -13,6 +13,7 @@ Simply visit [danielraffel.github.io/ggb](https://danielraffel.github.io/ggb) in
 - **[Axios](https://axios-http.com/docs/intro)** for real-time weather data fetching from the [Open-Meteo API](https://open-meteo.com/en/docs).
 - **JavaScript** to update the weather widgets dynamically every 10 minutes, keeping the data fresh without requiring a page refresh.
 - **Local Storage** is used to save your time difference setting, enabling the weather forecast to display based on your customized time preference.
+- **Night Mode**: Automatically switches to a dark theme between 8 PM and 6 AM for easier viewing in low-light conditions.
 
 ## What It Does
 
@@ -37,6 +38,9 @@ The page displays:
 
 - **Mobile and Desktop Support**: 
   - The page adapts to mobile and desktop displays, allowing users to either enter or select times using dropdowns on mobile or type directly on desktop.
+ 
+- **Night Mode:**
+  - From 8 PM to 6 AM, the page automatically switches to a dark theme, reducing eye strain in low-light environments and improving visibility at night.
   
 ## Example Output
 
