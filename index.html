@@ -40,7 +40,7 @@
                     <select id="first-crossing-hours" class="border rounded px-1 py-1 w-16">
                         <!-- Options will be populated by JavaScript -->
                     </select>
-                    <select id="first-crossing-minutes" class="border rounded px-1 py-1 w-16">
+                    <select id="first-crossing-minutes" class="border rounded px-1 py-1 w-[4.5rem]">
                         <!-- Options will be populated by JavaScript -->
                     </select>
                 </div>
@@ -64,7 +64,7 @@
                     <select id="second-crossing-hours" class="border rounded px-1 py-1 w-16">
                         <!-- Options will be populated by JavaScript -->
                     </select>
-                    <select id="second-crossing-minutes" class="border rounded px-1 py-1 w-16">
+                    <select id="second-crossing-minutes" class="border rounded px-1 py-1 w-[4.5rem]">
                         <!-- Options will be populated by JavaScript -->
                     </select>
                 </div>
@@ -424,7 +424,7 @@
                 // Update the weather info element with the fetched data
                 weatherInfo.innerHTML = `
                     <p>Temperature: ${temperature}°F</p>
-                    <p>Wind Speed: ${windSpeed} km/h</p>
+                    <p>Wind Speed: ${windSpeed} mph</p>
                     <p>Likely to Rain: ${isLikelyToRain} (${precipitationProbability}% chance)</p>
                 `;
 
