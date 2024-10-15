@@ -77,6 +77,9 @@
                 border-radius: 50%;
                 margin-right: 4px;
             }
+            .mobile-hide-title {
+                display: none;
+            }
         }
         body {
             -webkit-transform: translateZ(0);
@@ -90,7 +93,7 @@
 <body class="bg-gray-100 min-h-screen">
     <div class="container mx-auto px-4 py-4 sm:py-8">
         <!-- Page title -->
-        <h1 class="text-3xl font-bold mb-6 text-center">Golden Gate Bridge Weather Forecast</h1>
+        <h1 class="text-3xl font-bold mb-6 text-center mobile-hide-title">Golden Gate Bridge Weather Forecast</h1>
         
         <!-- Live video feed of Golden Gate Bridge -->
         <div class="mb-6">
@@ -100,6 +103,25 @@
         <!-- Weather Chart container -->
         <div class="chart-container bg-white shadow-md rounded-lg p-6 mb-6">
             <h2 class="text-xl font-semibold mb-4">Today's Weather Forecast</h2>
+            <!-- Add this new div for the mobile legend -->
+            <div id="mobile-legend" class="md:hidden flex justify-around text-xs mb-2">
+                <div class="flex items-center">
+                    <span class="w-3 h-3 rounded-full bg-red-400 mr-1"></span>
+                    <span>Temp (°F)</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="w-3 h-3 rounded-full bg-blue-400 mr-1"></span>
+                    <span>Cloud (%)</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="w-3 h-3 rounded-full bg-green-400 mr-1"></span>
+                    <span>Wind (MPH)</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="w-3 h-3 rounded-full bg-purple-400 mr-1"></span>
+                    <span>Precip (%)</span>
+                </div>
+            </div>
             <canvas id="weatherChart"></canvas>
         </div>
 
@@ -137,7 +159,7 @@
     <!-- Footer -->
     <div>
         <div class="text-sm sm:mt-0 mt-2 sm:mb-6 mb-0 text-center">
-            <a href="https://github.com/danielraffel/ggb" target="_blank" style="text-decoration: underline;">About this Site</a> | <a href="https://danielraffel.github.io/ggb/index.html" target="_blank" style="text-decoration: underline;">Golden Gate Bridge Live Weather Viewer</a>
+            <a href="https://github.com/danielraffel/ggb" target="_blank" style="text-decoration: underline;">About this Site</a> | <a href="https://danielraffel.github.io/ggb/index.html" target="_blank" style="text-decoration: underline;">Golden Gate Bridge Weather Forecaster</a>
         </div>
     </div>
     
@@ -236,6 +258,13 @@
             const ctx = document.getElementById('weatherChart').getContext('2d');
             const isMobile = window.innerWidth <= 640;
 
+            const chartColors = {
+                temperature: 'rgb(255, 99, 132)',
+                cloudCover: 'rgb(54, 162, 235)',
+                windSpeed: 'rgb(75, 192, 192)',
+                precipProb: 'rgb(153, 102, 255)'
+            };
+
             weatherChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -244,30 +273,38 @@
                         {
                             label: 'Temperature (°F)',
                             data: chartData.temperatures,
-                            borderColor: 'rgb(255, 99, 132)',
-                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: chartColors.temperature,
+                            backgroundColor: chartColors.temperature + '33',
                             yAxisID: 'y-temperature',
+                            pointBackgroundColor: chartColors.temperature,
+                            pointBorderColor: chartColors.temperature,
                         },
                         {
                             label: 'Cloud Cover (%)',
                             data: chartData.cloudCover,
-                            borderColor: 'rgb(54, 162, 235)',
-                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: chartColors.cloudCover,
+                            backgroundColor: chartColors.cloudCover + '33',
                             yAxisID: 'y-percentage',
+                            pointBackgroundColor: chartColors.cloudCover,
+                            pointBorderColor: chartColors.cloudCover,
                         },
                         {
                             label: 'Wind Speed (mph)',
                             data: chartData.windSpeed,
-                            borderColor: 'rgb(75, 192, 192)',
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: chartColors.windSpeed,
+                            backgroundColor: chartColors.windSpeed + '33',
                             yAxisID: 'y-wind',
+                            pointBackgroundColor: chartColors.windSpeed,
+                            pointBorderColor: chartColors.windSpeed,
                         },
                         {
                             label: 'Precipitation Probability (%)',
                             data: chartData.precipProb,
-                            borderColor: 'rgb(153, 102, 255)',
-                            backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                            borderColor: chartColors.precipProb,
+                            backgroundColor: chartColors.precipProb + '33',
                             yAxisID: 'y-percentage',
+                            pointBackgroundColor: chartColors.precipProb,
+                            pointBorderColor: chartColors.precipProb,
                         }
                     ]
                 },
@@ -278,12 +315,20 @@
                     plugins: {
                         legend: {
                             display: !isMobile,
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'line',
+                                boxWidth: 30,
+                                boxHeight: 1,
+                            },
                         },
                     },
                     layout: {
                         padding: {
                             top: 8,
-                            right: 8
+                            right: 8,
+                            bottom: isMobile ? 20 : 8, // Increase bottom padding on mobile
+                            left: 8
                         }
                     },
                     scales: {
@@ -292,6 +337,27 @@
                             title: {
                                 display: true,
                                 text: 'Time'
+                            },
+                            ticks: {
+                                callback: function(val, index) {
+                                    const time = this.getLabelForValue(val);
+                                    if (isMobile) {
+                                        // Mobile formatting
+                                        const [hours, minutes, period] = time.split(/[:\s]/);
+                                        const hourNum = parseInt(hours);
+                                        if (hourNum === 12) {
+                                            return '12P';
+                                        } else if (period === 'PM') {
+                                            return `${hourNum}P`;
+                                        } else {
+                                            return `${hourNum}A`;
+                                        }
+                                    } else {
+                                        // Desktop formatting (unchanged)
+                                        return time;
+                                    }
+                                },
+                                padding: isMobile ? 8 : 0 // Add some padding to x-axis ticks on mobile
                             }
                         },
                         'y-temperature': {
@@ -338,6 +404,13 @@
                     afterRender: (chart) => legendCallback(chart),
                 }],
             });
+
+            // Update mobile legend colors
+            const legendItems = document.querySelectorAll('#mobile-legend .rounded-full');
+            legendItems[0].style.backgroundColor = chartColors.temperature;
+            legendItems[1].style.backgroundColor = chartColors.cloudCover;
+            legendItems[2].style.backgroundColor = chartColors.windSpeed;
+            legendItems[3].style.backgroundColor = chartColors.precipProb;
         }
 
         function updateBestVisitTime(times, temperatures, cloudCover, windSpeed, precipProb) {
