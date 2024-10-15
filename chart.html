@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Golden Gate Bridge Weather Forecast</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        @keyframes blink {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 0.5; }
+        }
+        .animate-blink {
+            animation: blink 0.5s ease-in-out 3;
+        }
+        body.night-mode {
+            background-color: #1a1a1a;
+            color: #f0f0f0;
+        }
+        body.night-mode .bg-white {
+            background-color: #2a2a2a;
+        }
+        body.night-mode .border-gray-200 {
+            border-color: #3a3a3a;
+        }
+        body.night-mode .shadow-md {
+            box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -1px rgba(255, 255, 255, 0.06);
+        }
+        @media (max-width: 640px) {
+            #best-visit-time h3 {
+                font-size: 1rem;
+            }
+            #best-visit-time ul {
+                font-size: 0.875rem;
+            }
+            #current-weather h2 {
+                font-size: 1.25rem;
+            }
+            #current-weather p {
+                font-size: 0.875rem;
+            }
+            .mobile-title {
+                display: none;
+            }
+            .chart-container {
+                position: relative;
+                height: 300px;  /* Adjust this value as needed */
+                overflow: hidden;
+                transform: translate3d(0,0,0);
+                will-change: transform;
+            }
+            .chart-legend {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                display: flex;
+                justify-content: space-around;
+                background-color: rgba(255, 255, 255, 0.8);
+                padding: 5px;
+                font-size: 0.75rem;
+            }
+            .chart-legend-item {
+                display: flex;
+                align-items: center;
+            }
+            .chart-legend-color {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                margin-right: 4px;
+            }
+        }
+        body {
+            -webkit-transform: translateZ(0);
+            -moz-transform: translateZ(0);
+            -ms-transform: translateZ(0);
+            -o-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-4 sm:py-8">
+        <h1 class="text-3xl font-bold mb-6 text-center">Golden Gate Bridge Weather Forecast</h1>
+        
+        <!-- Live video feed of Golden Gate Bridge -->
+        <div class="mb-6">
+            <iframe class="w-full aspect-video" scrolling="no" frameborder="0" allowfullscreen webkitallowfullscreen mozallowfullscreen allow="autoplay; fullscreen" src="https://w3.mp.lura.live/player/prod/v3/anvload.html?key=eyJtIjoiTElOIiwidiI6ImFkc3Qxa1dabWtFZ1hLeDciLCJhbnZhY2siOiJFWm1yUjRFdjV4WW5NZmRiWTVUUGM3bmFLbXkzMk1LcCIsInNoYXJlTGluayI6Imh0dHBzOi8vd3d3Lmtyb240LmNvbS9saXZlLWV2ZW50cy8iLCJwbHVnaW5zIjp7ImNvbXNjb3JlIjp7ImNsaWVudElkIjoiNjAzNjQzOSIsImMzIjoia3JvbjQuY29tIiwic2NyaXB0IjoiLy93My5tcC5sdXJhLmxpdmUvcGxheWVyL3Byb2QvdjMvcGx1Z2lucy9jb21zY29yZS9jb21zY29yZXBsdWdpbi5taW4uanMiLCJ1c2VEZXJpdmVkTWV0YWRhdGEiOnRydWUsIm1hcHBpbmciOnsiYWRsb2FkdHlwZSI6MiwiYWRNb2RlbCI6Mn0sIm9wdE91dCI6ZmFsc2V9LCJzZWdtZW50Q3VzdG9tIjp7InNjcmlwdCI6Imh0dHBzOi8vc2VnbWVudC5wc2cubmV4c3RhcmRpZ2l0YWwubmV0L2FudmF0by5qcyIsIndyaXRlS2V5IjoiUUdOcU9tbVlwaXIwZjVEWGtad2daYThsMnh2YVNJakoiLCJwbHVnaW5zTG9hZGluZ1RpbWVvdXQiOjEyfX0sImh0bWw1Ijp0cnVlLCJ0b2tlbiI6ImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSmhaSE4wTVd0WFdtMXJSV2RZUzNnM0lpd2lhWE56SWpvaVJWcHRjbEkwUlhZMWVGbHVUV1prWWxrMVZGQmpOMjVoUzIxNU16Sk5TM0FpTENKbGVIQWlPakUyTkRVd05EUXhNamw5LlJBSm1Zb1FCV0UifQ%3D%3D"></iframe>
+        </div>
+
+        <!-- Weather Chart -->
+        <div class="bg-white shadow-md rounded-lg p-6 mb-6 chart-container">
+            <h2 class="text-xl font-semibold mb-4">Today's Weather Forecast</h2>
+            <canvas id="weatherChart"></canvas>
+        </div>
+
+        <!-- Best Visit Time -->
+        <div id="best-visit-time" class="bg-white shadow-md rounded-lg p-6 mb-6">
+            <div class="flex justify-between">
+                <div class="w-1/2 pr-2">
+                    <h3 class="text-xl font-semibold mb-2 text-yellow-500">
+                        🥇 Best time <span class="mobile-title">to visit</span>
+                    </h3>
+                    <ul id="best-time-info-1" class="text-lg list-none p-0"></ul>
+                </div>
+                <div class="w-1/2 pl-2">
+                    <h3 class="text-xl font-semibold mb-2 text-gray-500">
+                        🥈 Second best <span class="mobile-title">time</span>
+                    </h3>
+                    <ul id="best-time-info-2" class="text-lg list-none p-0"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Weather -->
+        <div id="current-weather" class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-2">Current Weather</h2>
+            <p id="current-weather-info" class="text-lg"></p>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-6 hidden" role="alert">
+            <strong class="font-bold">Error!</strong>
+            <span class="block sm:inline" id="error-text"></span>
+        </div>
+    </div>
+
+    <script>
+        let weatherChart;
+
+        // Helper functions
+        function formatTime(date) {
+            return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        }
+
+        function isNightTime() {
+            const hour = new Date().getHours();
+            return hour < 6 || hour >= 20;
+        }
+
+        function applyTheme() {
+            const body = document.body;
+            const isNight = isNightTime();
+            
+            if (isNight) {
+                body.classList.add('night-mode');
+            } else {
+                body.classList.remove('night-mode');
+            }
+        }
+
+        // Fetch weather data and update chart
+        async function fetchWeatherData() {
+            try {
+                const response = await axios.get('https://api.open-meteo.com/v1/forecast?latitude=37.8199&longitude=-122.4783&hourly=temperature_2m,cloudcover,windspeed_10m,precipitation_probability&timezone=America/Los_Angeles&forecast_days=1&temperature_unit=fahrenheit');
+                const data = response.data;
+
+                const times = data.hourly.time.map(time => new Date(time));
+                const temperatures = data.hourly.temperature_2m;
+                const cloudCover = data.hourly.cloudcover;
+                const windSpeed = data.hourly.windspeed_10m;
+                const precipProb = data.hourly.precipitation_probability;
+
+                const filteredData = times.reduce((acc, time, index) => {
+                    const hour = time.getHours();
+                    if (hour >= 5 && hour <= 21) {  // 5am to 9pm
+                        acc.times.push(time);
+                        acc.temperatures.push(temperatures[index]);
+                        acc.cloudCover.push(cloudCover[index]);
+                        acc.windSpeed.push(windSpeed[index]);
+                        acc.precipProb.push(precipProb[index]);
+                    }
+                    return acc;
+                }, { times: [], temperatures: [], cloudCover: [], windSpeed: [], precipProb: [] });
+
+                updateWeatherChart(filteredData.times, filteredData.temperatures, filteredData.cloudCover, filteredData.windSpeed, filteredData.precipProb);
+                updateBestVisitTime(filteredData.times, filteredData.temperatures, filteredData.cloudCover, filteredData.windSpeed, filteredData.precipProb);
+                updateCurrentWeather(filteredData.times, filteredData.temperatures, filteredData.cloudCover, filteredData.windSpeed, filteredData.precipProb);
+
+                // Hide error message if it was previously shown
+                document.getElementById('error-message').classList.add('hidden');
+            } catch (error) {
+                console.error('Error fetching weather data:', error);
+                showErrorMessage('Failed to fetch weather data. Please try again later.');
+            }
+        }
+
+        function updateWeatherChart(times, temperatures, cloudCover, windSpeed, precipProb) {
+            const ctx = document.getElementById('weatherChart').getContext('2d');
+            const chartContainer = ctx.canvas.closest('.chart-container');
+            
+            if (weatherChart) {
+                weatherChart.destroy();
+            }
+
+            const isMobile = window.innerWidth <= 640;
+
+            weatherChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: times.map(formatTime),
+                    datasets: [
+                        {
+                            label: 'Temperature (°F)',
+                            data: temperatures,
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            yAxisID: 'y-temperature',
+                        },
+                        {
+                            label: 'Cloud Cover (%)',
+                            data: cloudCover,
+                            borderColor: 'rgb(54, 162, 235)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            yAxisID: 'y-percentage',
+                        },
+                        {
+                            label: 'Wind Speed (mph)',
+                            data: windSpeed,
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            yAxisID: 'y-wind',
+                        },
+                        {
+                            label: 'Precipitation Probability (%)',
+                            data: precipProb,
+                            borderColor: 'rgb(153, 102, 255)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                            yAxisID: 'y-percentage',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: !isMobile,
+                    aspectRatio: 2,
+                    plugins: {
+                        legend: {
+                            display: !isMobile,
+                        },
+                    },
+                    layout: {
+                        padding: {
+                            top: 8,  // Add a little padding to the top to show 100% dots
+                            right: 8 // Add a little padding to the right as well
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        },
+                        'y-temperature': {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Temperature (°F)'
+                            },
+                            suggestedMax: Math.max(...temperatures) + 1  // Add just a little space above the highest temperature
+                        },
+                        'y-percentage': {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            min: 0,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: isMobile ? 'Cloud & Precip (%)' : 'Cloud Cover & Precipitation (%)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            }
+                        },
+                        'y-wind': {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Wind Speed (mph)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                            suggestedMax: Math.max(...windSpeed) + 1  // Add just a little space above the highest wind speed
+                        }
+                    }
+                },
+                plugins: [{
+                    id: 'customLegend',
+                    afterRender: (chart) => legendCallback(chart),
+                }],
+            });
+        }
+
+        function updateBestVisitTime(times, temperatures, cloudCover, windSpeed, precipProb) {
+            let scores = [];
+
+            for (let i = 0; i < times.length; i++) {
+                const hour = times[i].getHours();
+                if (hour >= 6 && hour <= 20) {  // Only consider times between 6 AM and 8 PM
+                    const tempScore = temperatures[i] * 2;  // Prioritize warmth
+                    const rainScore = 100 - precipProb[i];  // Higher score for lower precipitation probability
+                    const cloudScore = (100 - cloudCover[i]) / 2;  // Less weight on cloud cover
+                    const windScore = (20 - windSpeed[i]) / 2;  // Less weight on wind speed
+                    
+                    const totalScore = tempScore + rainScore + cloudScore + windScore;
+                    scores.push({ time: times[i], score: totalScore });
+                }
+            }
+
+            // Sort scores in descending order
+            scores.sort((a, b) => b.score - a.score);
+
+            // Get the top 2 times
+            const bestTime1 = scores[0].time;
+            const bestTime2 = scores[1].time;
+
+            function createInfoList(time, index) {
+                const i = times.indexOf(time);
+                return `
+                    <li>⏰ ${formatTime(time)}</li>
+                    <li>🌡️ ${temperatures[i].toFixed(1)}°F</li>
+                    <li>🌧 ${precipProb[i]}% chance</li>
+                    <li>☁️ ${cloudCover[i]}% cover</li>
+                    <li>🌬️ ${windSpeed[i].toFixed(1)} mph</li>
+                `;
+            }
+
+            document.getElementById('best-time-info-1').innerHTML = createInfoList(bestTime1);
+            document.getElementById('best-time-info-2').innerHTML = createInfoList(bestTime2);
+        }
+
+        function updateCurrentWeather(times, temperatures, cloudCover, windSpeed, precipProb) {
+            const now = new Date();
+            const currentIndex = times.findIndex(time => time > now) - 1;
+
+            if (currentIndex >= 0) {
+                const currentWeatherInfo = document.getElementById('current-weather-info');
+                currentWeatherInfo.innerHTML = `
+                    <p>Temperature: ${temperatures[currentIndex]}°F</p>
+                    <p>Cloud Cover: ${cloudCover[currentIndex]}%</p>
+                    <p>Wind Speed: ${windSpeed[currentIndex]} mph</p>
+                    <p>Precipitation: ${precipProb[currentIndex]}%</p>
+                `;
+            }
+        }
+
+        function showErrorMessage(message) {
+            const errorElement = document.getElementById('error-message');
+            const errorTextElement = document.getElementById('error-text');
+            errorTextElement.textContent = message;
+            errorElement.classList.remove('hidden');
+        }
+
+        // Initialize
+        applyTheme();
+        fetchWeatherData();
+
+        // Update theme every minute
+        setInterval(applyTheme, 60000);
+
+        // Update weather data every 30 minutes
+        setInterval(fetchWeatherData, 1800000);
+
+        // Call this function when the window resizes to update the chart
+        window.addEventListener('resize', () => {
+            fetchWeatherData();  // This will recreate the chart with the appropriate legend
+        });
+
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                if (weatherChart) {
+                    weatherChart.update();
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>
