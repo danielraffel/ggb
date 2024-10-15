@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Meta tags and title -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Golden Gate Bridge Weather Forecast</title>
+    <title>Plan the Best Time to Visit the Golden Gate Bridge Today</title>
+
+    <!-- External scripts and stylesheets -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+
     <style>
+        /* CSS styles for animations, night mode, and mobile responsiveness */
         @keyframes blink {
             0%, 100% { opacity: 0; }
             50% { opacity: 0.5; }
@@ -84,6 +89,7 @@
 </head>
 <body class="bg-gray-100 min-h-screen">
     <div class="container mx-auto px-4 py-4 sm:py-8">
+        <!-- Page title -->
         <h1 class="text-3xl font-bold mb-6 text-center">Golden Gate Bridge Weather Forecast</h1>
         
         <!-- Live video feed of Golden Gate Bridge -->
@@ -91,13 +97,13 @@
             <iframe class="w-full aspect-video" scrolling="no" frameborder="0" allowfullscreen webkitallowfullscreen mozallowfullscreen allow="autoplay; fullscreen" src="https://w3.mp.lura.live/player/prod/v3/anvload.html?key=eyJtIjoiTElOIiwidiI6ImFkc3Qxa1dabWtFZ1hLeDciLCJhbnZhY2siOiJFWm1yUjRFdjV4WW5NZmRiWTVUUGM3bmFLbXkzMk1LcCIsInNoYXJlTGluayI6Imh0dHBzOi8vd3d3Lmtyb240LmNvbS9saXZlLWV2ZW50cy8iLCJwbHVnaW5zIjp7ImNvbXNjb3JlIjp7ImNsaWVudElkIjoiNjAzNjQzOSIsImMzIjoia3JvbjQuY29tIiwic2NyaXB0IjoiLy93My5tcC5sdXJhLmxpdmUvcGxheWVyL3Byb2QvdjMvcGx1Z2lucy9jb21zY29yZS9jb21zY29yZXBsdWdpbi5taW4uanMiLCJ1c2VEZXJpdmVkTWV0YWRhdGEiOnRydWUsIm1hcHBpbmciOnsiYWRsb2FkdHlwZSI6MiwiYWRNb2RlbCI6Mn0sIm9wdE91dCI6ZmFsc2V9LCJzZWdtZW50Q3VzdG9tIjp7InNjcmlwdCI6Imh0dHBzOi8vc2VnbWVudC5wc2cubmV4c3RhcmRpZ2l0YWwubmV0L2FudmF0by5qcyIsIndyaXRlS2V5IjoiUUdOcU9tbVlwaXIwZjVEWGtad2daYThsMnh2YVNJakoiLCJwbHVnaW5zTG9hZGluZ1RpbWVvdXQiOjEyfX0sImh0bWw1Ijp0cnVlLCJ0b2tlbiI6ImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSmhaSE4wTVd0WFdtMXJSV2RZUzNnM0lpd2lhWE56SWpvaVJWcHRjbEkwUlhZMWVGbHVUV1prWWxrMVZGQmpOMjVoUzIxNU16Sk5TM0FpTENKbGVIQWlPakUyTkRVd05EUXhNamw5LlJBSm1Zb1FCV0UifQ%3D%3D"></iframe>
         </div>
 
-        <!-- Weather Chart -->
-        <div class="bg-white shadow-md rounded-lg p-6 mb-6 chart-container">
+        <!-- Weather Chart container -->
+        <div class="chart-container bg-white shadow-md rounded-lg p-6 mb-6">
             <h2 class="text-xl font-semibold mb-4">Today's Weather Forecast</h2>
             <canvas id="weatherChart"></canvas>
         </div>
 
-        <!-- Best Visit Time -->
+        <!-- Best Visit Time section -->
         <div id="best-visit-time" class="bg-white shadow-md rounded-lg p-6 mb-6">
             <div class="flex justify-between">
                 <div class="w-1/2 pr-2">
@@ -115,21 +121,30 @@
             </div>
         </div>
 
-        <!-- Current Weather -->
+        <!-- Current Weather section -->
         <div id="current-weather" class="bg-white shadow-md rounded-lg p-6">
             <h2 class="text-xl font-semibold mb-2">Current Weather</h2>
             <p id="current-weather-info" class="text-lg"></p>
         </div>
 
-        <!-- Error Message -->
+        <!-- Error Message container -->
         <div id="error-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-6 hidden" role="alert">
             <strong class="font-bold">Error!</strong>
             <span class="block sm:inline" id="error-text"></span>
         </div>
     </div>
 
+    <!-- Footer -->
+    <div>
+        <div class="text-sm sm:mt-0 mt-2 sm:mb-6 mb-0 text-center">
+            <a href="https://github.com/danielraffel/ggb" target="_blank" style="text-decoration: underline;">About this Site</a> | <a href="https://danielraffel.github.io/ggb/index.html" target="_blank" style="text-decoration: underline;">Golden Gate Bridge Live Weather Viewer</a>
+        </div>
+    </div>
+    
     <script>
+        // Global variables
         let weatherChart;
+        let chartData;
 
         // Helper functions
         function formatTime(date) {
@@ -142,6 +157,7 @@
         }
 
         function applyTheme() {
+            // Apply night mode theme based on time of day
             const body = document.body;
             const isNight = isNightTime();
             
@@ -155,9 +171,11 @@
         // Fetch weather data and update chart
         async function fetchWeatherData() {
             try {
+                // Fetch data from API
                 const response = await axios.get('https://api.open-meteo.com/v1/forecast?latitude=37.8199&longitude=-122.4783&hourly=temperature_2m,cloudcover,windspeed_10m,precipitation_probability&timezone=America/Los_Angeles&forecast_days=1&temperature_unit=fahrenheit');
                 const data = response.data;
 
+                // Process and filter data
                 const times = data.hourly.time.map(time => new Date(time));
                 const temperatures = data.hourly.temperature_2m;
                 const cloudCover = data.hourly.cloudcover;
@@ -176,6 +194,7 @@
                     return acc;
                 }, { times: [], temperatures: [], cloudCover: [], windSpeed: [], precipProb: [] });
 
+                // Update UI components
                 updateWeatherChart(filteredData.times, filteredData.temperatures, filteredData.cloudCover, filteredData.windSpeed, filteredData.precipProb);
                 updateBestVisitTime(filteredData.times, filteredData.temperatures, filteredData.cloudCover, filteredData.windSpeed, filteredData.precipProb);
                 updateCurrentWeather(filteredData.times, filteredData.temperatures, filteredData.cloudCover, filteredData.windSpeed, filteredData.precipProb);
@@ -189,6 +208,7 @@
         }
 
         function updateWeatherChart(times, temperatures, cloudCover, windSpeed, precipProb) {
+            // Prepare data for chart
             const ctx = document.getElementById('weatherChart').getContext('2d');
             const chartContainer = ctx.canvas.closest('.chart-container');
             
@@ -198,35 +218,53 @@
 
             const isMobile = window.innerWidth <= 640;
 
+            chartData = {
+                times,
+                temperatures,
+                cloudCover,
+                windSpeed,
+                precipProb
+            };
+
+            createChart();
+        }
+
+        function createChart() {
+            // Create and configure the weather chart using Chart.js
+            if (!chartData) return;
+
+            const ctx = document.getElementById('weatherChart').getContext('2d');
+            const isMobile = window.innerWidth <= 640;
+
             weatherChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: times.map(formatTime),
+                    labels: chartData.times.map(formatTime),
                     datasets: [
                         {
                             label: 'Temperature (°F)',
-                            data: temperatures,
+                            data: chartData.temperatures,
                             borderColor: 'rgb(255, 99, 132)',
                             backgroundColor: 'rgba(255, 99, 132, 0.2)',
                             yAxisID: 'y-temperature',
                         },
                         {
                             label: 'Cloud Cover (%)',
-                            data: cloudCover,
+                            data: chartData.cloudCover,
                             borderColor: 'rgb(54, 162, 235)',
                             backgroundColor: 'rgba(54, 162, 235, 0.2)',
                             yAxisID: 'y-percentage',
                         },
                         {
                             label: 'Wind Speed (mph)',
-                            data: windSpeed,
+                            data: chartData.windSpeed,
                             borderColor: 'rgb(75, 192, 192)',
                             backgroundColor: 'rgba(75, 192, 192, 0.2)',
                             yAxisID: 'y-wind',
                         },
                         {
                             label: 'Precipitation Probability (%)',
-                            data: precipProb,
+                            data: chartData.precipProb,
                             borderColor: 'rgb(153, 102, 255)',
                             backgroundColor: 'rgba(153, 102, 255, 0.2)',
                             yAxisID: 'y-percentage',
@@ -244,8 +282,8 @@
                     },
                     layout: {
                         padding: {
-                            top: 8,  // Add a little padding to the top to show 100% dots
-                            right: 8 // Add a little padding to the right as well
+                            top: 8,
+                            right: 8
                         }
                     },
                     scales: {
@@ -264,7 +302,7 @@
                                 display: true,
                                 text: 'Temperature (°F)'
                             },
-                            suggestedMax: Math.max(...temperatures) + 1  // Add just a little space above the highest temperature
+                            suggestedMax: Math.max(...chartData.temperatures) + 1  // Add just a little space above the highest temperature
                         },
                         'y-percentage': {
                             type: 'linear',
@@ -291,7 +329,7 @@
                             grid: {
                                 drawOnChartArea: false,
                             },
-                            suggestedMax: Math.max(...windSpeed) + 1  // Add just a little space above the highest wind speed
+                            suggestedMax: Math.max(...chartData.windSpeed) + 1  // Add just a little space above the highest wind speed
                         }
                     }
                 },
@@ -303,6 +341,7 @@
         }
 
         function updateBestVisitTime(times, temperatures, cloudCover, windSpeed, precipProb) {
+            // Calculate and display the best times to visit
             let scores = [];
 
             for (let i = 0; i < times.length; i++) {
@@ -341,6 +380,7 @@
         }
 
         function updateCurrentWeather(times, temperatures, cloudCover, windSpeed, precipProb) {
+            // Update the current weather information
             const now = new Date();
             const currentIndex = times.findIndex(time => time > now) - 1;
 
@@ -356,10 +396,32 @@
         }
 
         function showErrorMessage(message) {
+            // Display error message to the user
             const errorElement = document.getElementById('error-message');
             const errorTextElement = document.getElementById('error-text');
             errorTextElement.textContent = message;
             errorElement.classList.remove('hidden');
+        }
+
+        // Set up Intersection Observer for lazy loading
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    createChart();
+                }
+            });
+        }, observerOptions);
+
+        // Start observing the chart container
+        const chartContainer = document.querySelector('.chart-container');
+        if (chartContainer) {
+            observer.observe(chartContainer);
         }
 
         // Initialize
@@ -372,19 +434,11 @@
         // Update weather data every 30 minutes
         setInterval(fetchWeatherData, 1800000);
 
-        // Call this function when the window resizes to update the chart
+        // Recreate chart on window resize
         window.addEventListener('resize', () => {
-            fetchWeatherData();  // This will recreate the chart with the appropriate legend
-        });
-
-        let scrollTimeout;
-        window.addEventListener('scroll', () => {
-            clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(() => {
-                if (weatherChart) {
-                    weatherChart.update();
-                }
-            }, 100);
+            if (chartData) {
+                createChart();
+            }
         });
     </script>
 </body>
