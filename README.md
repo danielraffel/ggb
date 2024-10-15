@@ -18,7 +18,7 @@ Simply visit [danielraffel.github.io/ggb](https://danielraffel.github.io/ggb) in
 
 The page displays:
 
-- **Live Stream**: A [live video feed of the Golden Gate Bridge](https://www.iplivecams.com/live-cams/golden-gate-bridge-san-francisco-california-united-states/).
+- **Live Stream**: A live video feed of the Golden Gate Bridge.
 - **Real-Time Weather Updates**: 
   - Current temperature (in Fahrenheit)
   - Wind speed (in mph)
@@ -27,6 +27,17 @@ The page displays:
   - By default, a 2-hour future forecast is displayed, showing the temperature, wind speed, and likelihood of rain. Users can adjust the time input field to see weather conditions at different times.
   - A time difference display shows how far in the future the selected weather forecast is (e.g., "in 2h").
 
+## Additional Features
+
+- **Crossing Time Adjustment**: 
+  - Users can enter a time for their first crossing and the app will automatically calculate and display weather conditions for the second crossing. The interface allows for precise control using either text input or dropdowns for hours and minutes.
+  
+- **Sunset Information**: 
+  - Displays the time of sunset for the current or next day based on real-time data from Open-Meteo.
+
+- **Mobile and Desktop Support**: 
+  - The page adapts to mobile and desktop displays, allowing users to either enter or select times using dropdowns on mobile or type directly on desktop.
+  
 ## Example Output
 
 ```html
@@ -39,3 +50,5 @@ The page displays:
 <p>Wind Speed: 8 mph</p>
 <p>Likely to Rain: Yes (40% chance)</p>
 ```
+
+This app provides riders with all the information needed to plan their crossing safely, based on up-to-the-minute weather data.
