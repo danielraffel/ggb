@@ -16,6 +16,30 @@
         .animate-blink {
             animation: blink 0.5s ease-in-out 3;
         }
+
+        /* Night mode styles */
+        body.night-mode {
+            background-color: #1a1a1a;
+            color: #f0f0f0;
+        }
+
+        /* Adjust background color for white elements in night mode */
+        body.night-mode .bg-white {
+            background-color: #2a2a2a;
+        }
+
+        /* Style form inputs and selects for night mode */
+        body.night-mode input,
+        body.night-mode select {
+            background-color: #3a3a3a;
+            color: #f0f0f0;
+            border-color: #4a4a4a;
+        }
+
+        /* Adjust shadow for better visibility in night mode */
+        body.night-mode .shadow-md {
+            box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -1px rgba(255, 255, 255, 0.06);
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -30,7 +54,7 @@
 
         <!-- First crossing information -->
         <div id="first-crossing" class="bg-white shadow-md rounded-lg p-6 mb-4 sm:mb-6">
-            <h2 class="text-1xl font-semibold mb-2 sm:mb-4">1st Golden Gate Bridge Crossing</h2>
+            <h2 class="text-1xl font-semibold mb-2 sm:mb-4">1st GGB Crossing</h2>
             <div class="flex items-center space-x-2 sm:space-x-4 mb-2 sm:mb-4">
                 <span>in</span>
                 <!-- Desktop view for time difference input -->
@@ -55,7 +79,7 @@
 
         <!-- Second crossing information -->
         <div id="second-crossing" class="bg-white shadow-md rounded-lg p-6">
-            <h2 class="text-1xl font-semibold mb-2 sm:mb-4">2nd Golden Gate Bridge Crossing</h2>
+            <h2 class="text-1xl font-semibold mb-2 sm:mb-4">2nd GGB Crossing</h2>
             <div class="flex items-center space-x-2 sm:space-x-4 mb-2 sm:mb-4">
                 <!-- Desktop view for time difference input -->
                 <input type="text" id="second-crossing-time-diff" class="border rounded px-2 py-1 w-20 hidden sm:inline">
@@ -72,6 +96,12 @@
                 <input type="time" id="second-crossing-time" class="border rounded px-2 py-1">
             </div>
             <div id="second-crossing-weather" class="text-lg"></div>
+        </div>
+    </div>
+
+    <div>
+        <div class="text-sm mt-0 text-center">
+            <a href="https://github.com/danielraffel/ggb" target="_blank" style="text-decoration: underline;">About this Site</a>
         </div>
     </div>
 
@@ -580,6 +610,30 @@
 
         // Window resize event listener
         window.addEventListener('resize', updateAllInputs);
+
+        // Function to determine if it's night time (between 8 PM and 6 AM)
+        function isNightTime() {
+            const hour = new Date().getHours();
+            return hour < 6 || hour >= 20; // Consider night time between 8 PM and 6 AM
+        }
+
+        // Function to apply the appropriate theme based on time of day
+        function applyTheme() {
+            const body = document.body;
+            const isNight = isNightTime();
+            
+            if (isNight) {
+                body.classList.add('night-mode');
+            } else {
+                body.classList.remove('night-mode');
+            }
+        }
+
+        // Apply theme on page load
+        applyTheme();
+
+        // Check and update theme every minute
+        setInterval(applyTheme, 60000);
     </script>
 </body>
 </html>
