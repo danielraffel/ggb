@@ -1,58 +1,31 @@
-# Golden Gate Bridge Live Weather Viewer
-
-I frequently ride across the Golden Gate Bridge and wanted an easy way to check the current and future conditions so that I can dress appropriately. This page offers a live view of the Golden Gate Bridge along with real-time weather updates and a customizable future weather forecast. You can check the current temperature, wind speed, and chance of rain, and if you’re planning to ride back across, you can adjust the forecast time based on when you think you'll be riding back across.
+# Best Times to Cross the Golden Gate Bridge Today, Based on Weather Conditions
+I frequently ride across the Golden Gate Bridge and wanted an easy way to check current and future weather conditions so I could dress appropriately. This site provides real-time weather updates along with a customizable forecast for both crossings. It’s ideal for cyclists, runners, and walkers who want to plan their trip based on accurate weather data.
 
 ## How to View It
+Visit [danielraffel.github.io/ggb](https://danielraffel.github.io/ggb) to view the live stream, check current weather conditions, and access a future weather forecast. The site displays key information such as temperature, wind speed, rain probability, and sunset time. It also suggests the best two times for your crossings today, helping you choose the optimal windows for your trip.
 
-Simply visit [danielraffel.github.io/ggb](https://danielraffel.github.io/ggb) in your browser to view the live stream, current weather conditions, and a future weather forecast, which can be adjusted to match your ride. The default forecast time is 2 hours ahead, but you can easily change it to see weather conditions at any time during your ride. If you frequently start from the same location, the site will remember the last time difference you set and automatically apply it to the future forecast, overriding the 2-hour default. This makes it convenient to use as a starting page before your ride, without needing to adjust it every time.
+If you typically start from the same location, you can set time offsets to match your usual travel times. These settings are saved in your browser’s local storage, so the site automatically adjusts the forecast for both your outbound and return crossings without requiring any input each time you visit.
+
+## Key Features
+- **Real-Time Weather Conditions**: Current temperature, wind speed, rain probability, and sunset time, updated every 10 minutes.
+- **Future Weather Forecast**: By default, the forecast is set for 2 hours ahead, but you can adjust the time to match your ride. The site suggests the best two crossing windows based on today’s forecast.
+- **Time Offsets**: Set custom time offsets for both outbound and return trips. These offsets are saved in local storage and automatically applied on your next visit.
+- **Live Stream**: A live video feed of the Golden Gate Bridge to help you assess conditions visually.
+- **Sunset Time**: Automatically shows today’s sunset time, helping you plan for daylight hours.
 
 ## How It Was Built
-
-- **HTML5** for structuring the page.
-- **[Tailwind CSS](https://tailwindcss.com)** for responsive design.
-- **[Axios](https://axios-http.com/docs/intro)** for real-time weather data fetching from the [Open-Meteo API](https://open-meteo.com/en/docs).
-- **JavaScript** to update the weather widgets dynamically every 10 minutes, keeping the data fresh without requiring a page refresh.
-- **Local Storage** is used to save your time difference setting, enabling the weather forecast to display based on your customized time preference.
-- **Night Mode**: Automatically switches to a dark theme between 8 PM and 6 AM for easier viewing in low-light conditions.
-
-## What It Does
-
-The page displays:
-
-- **Live Stream**: A live video feed of the Golden Gate Bridge.
-- **Real-Time Weather Updates**: 
-  - Current temperature (in Fahrenheit)
-  - Wind speed (in mph)
-  - Probability of rain based on real-time data from the Open-Meteo API
-- **Future Weather Forecast**: 
-  - By default, a 2-hour future forecast is displayed, showing the temperature, wind speed, and likelihood of rain. Users can adjust the time input field to see weather conditions at different times.
-  - A time difference display shows how far in the future the selected weather forecast is (e.g., "in 2h").
+- **HTML5**: Provides the structure for the page.
+- **[Tailwind CSS](https://tailwindcss.com)**: Ensures a responsive and mobile-friendly design.
+- **[Axios](https://axios-http.com/docs/intro)**: Used to fetch real-time weather data from the [Open-Meteo API](https://open-meteo.com/en/docs).
+- **JavaScript**: Dynamically updates weather conditions every 10 minutes without needing a page refresh.
+- **Local Storage**: Saves your time offset settings so they are applied automatically during future visits.
 
 ## Additional Features
+- **Crossing Time Adjustment**: You can enter times for both crossings. The site will display weather forecasts for both your outbound and return trips, factoring in the time it takes to reach the bridge.
+- **Suggested Crossing Times**: The site provides the best two times to cross the bridge today, based on the forecasted conditions.
+- **Night Mode**: The site automatically switches to a dark theme between 8 PM and 6 AM for better visibility in low-light conditions.
 
-- **Crossing Time Adjustment**: 
-  - Users can enter a time for their first crossing and the app will automatically calculate and display weather conditions for the second crossing. The interface allows for precise control using either text input or dropdowns for hours and minutes.
-  
-- **Sunset Information**: 
-  - Displays the time of sunset for the current or next day based on real-time data from Open-Meteo.
-
-- **Mobile and Desktop Support**: 
-  - The page adapts to mobile and desktop displays, allowing users to either enter or select times using dropdowns on mobile or type directly on desktop.
- 
-- **Night Mode:**
-  - From 8 PM to 6 AM, the page automatically switches to a dark theme, reducing eye strain in low-light environments and improving visibility at night.
-  
-## Example Output
-
-```html
-<p>Temperature: 65°F</p>
-<p>Wind Speed: 10 mph</p>
-<p>Likely to Rain: No (15% chance)</p>
-
-<p>Future Weather (in 2 hours):</p>
-<p>Temperature: 60°F</p>
-<p>Wind Speed: 8 mph</p>
-<p>Likely to Rain: Yes (40% chance)</p>
-```
-
-This app provides riders with all the information needed to plan their crossing safely, based on up-to-the-minute weather data.
+## Final Notes
+In addition to the [main site](https://danielraffel.github.io/ggb), I’ve created a couple of other versions to suit different audiences:
+- **[The Golden Gate Bridge Weather Forecast for Cyclists and Runners](https://danielraffel.github.io/ggb/crossingforecast.html)** is designed for athletes who know how long it takes to reach the bridge and just want a forecast for their planned crossing times.
+- **[The Best Time for Visitors to SF to Plan to Cross the Golden Gate Bridge Today](https://danielraffel.github.io/ggb/planvisit.html)** is ideal for tourists who want to quickly find the best time to cross the bridge based on forecasted weather conditions.
