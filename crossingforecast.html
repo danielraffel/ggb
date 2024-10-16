@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Golden Gate Bridge Weather Forecast for Cyclists and Runners</title>
+    <!-- External CSS and JS libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    <style>
+        /* Animation for blinking effect */
+        @keyframes blink {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 0.5; }
+        }
+        .animate-blink {
+            animation: blink 0.5s ease-in-out 3;
+        }
+
+        /* Night mode styles */
+        body.night-mode {
+            background-color: #1a1a1a;
+            color: #f0f0f0;
+        }
+
+        /* Adjust background color for white elements in night mode */
+        body.night-mode .bg-white {
+            background-color: #2a2a2a;
+        }
+
+        /* Style form inputs and selects for night mode */
+        body.night-mode input,
+        body.night-mode select {
+            background-color: #3a3a3a;
+            color: #f0f0f0;
+            border-color: #4a4a4a;
+        }
+
+        /* Adjust shadow for better visibility in night mode */
+        body.night-mode .shadow-md {
+            box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -1px rgba(255, 255, 255, 0.06);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-4 sm:py-8">
+        <h1 class="text-3xl font-bold mb-6 text-center hidden sm:block">Golden Gate Bridge Live</h1>
+        
+        <!-- Live video feed of Golden Gate Bridge -->
+        <div class="mb-2">
+            <iframe class="w-full aspect-video" scrolling="no" frameborder="0" allowfullscreen webkitallowfullscreen mozallowfullscreen allow="autoplay; fullscreen" src="https://w3.mp.lura.live/player/prod/v3/anvload.html?key=eyJtIjoiTElOIiwidiI6ImFkc3Qxa1dabWtFZ1hLeDciLCJhbnZhY2siOiJFWm1yUjRFdjV4WW5NZmRiWTVUUGM3bmFLbXkzMk1LcCIsInNoYXJlTGluayI6Imh0dHBzOi8vd3d3Lmtyb240LmNvbS9saXZlLWV2ZW50cy8iLCJwbHVnaW5zIjp7ImNvbXNjb3JlIjp7ImNsaWVudElkIjoiNjAzNjQzOSIsImMzIjoia3JvbjQuY29tIiwic2NyaXB0IjoiLy93My5tcC5sdXJhLmxpdmUvcGxheWVyL3Byb2QvdjMvcGx1Z2lucy9jb21zY29yZS9jb21zY29yZXBsdWdpbi5taW4uanMiLCJ1c2VEZXJpdmVkTWV0YWRhdGEiOnRydWUsIm1hcHBpbmciOnsiYWRsb2FkdHlwZSI6MiwiYWRNb2RlbCI6Mn0sIm9wdE91dCI6ZmFsc2V9LCJzZWdtZW50Q3VzdG9tIjp7InNjcmlwdCI6Imh0dHBzOi8vc2VnbWVudC5wc2cubmV4c3RhcmRpZ2l0YWwubmV0L2FudmF0by5qcyIsIndyaXRlS2V5IjoiUUdOcU9tbVlwaXIwZjVEWGtad2daYThsMnh2YVNJakoiLCJwbHVnaW5zTG9hZGluZ1RpbWVvdXQiOjEyfX0sImh0bWw1Ijp0cnVlLCJ0b2tlbiI6ImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSmhaSE4wTVd0WFdtMXJSV2RZUzNnM0lpd2lhWE56SWpvaVJWcHRjbEkwUlhZMWVGbHVUV1prWWxrMVZGQmpOMjVoUzIxNU16Sk5TM0FpTENKbGVIQWlPakUyTkRVd05EUXhNamw5LlJBSm1Zb1FCV0UifQ%3D%3D"></iframe>
+            <div id="sunset-info" class="text-sm mt-2 text-center"></div>
+        </div>
+
+        <!-- First crossing information -->
+        <div id="first-crossing" class="bg-white shadow-md rounded-lg p-6 mb-4 sm:mb-6">
+            <h2 class="text-1xl font-semibold mb-2 sm:mb-4">1st GGB Crossing</h2>
+            <div class="flex items-center space-x-2 sm:space-x-4 mb-2 sm:mb-4">
+                <span>in</span>
+                <!-- Desktop view for time difference input -->
+                <input type="text" id="first-crossing-time-diff" class="border rounded px-2 py-1 w-20 hidden sm:inline">
+                <!-- Mobile view for time difference input -->
+                <div class="flex space-x-1 sm:hidden">
+                    <select id="first-crossing-hours" class="border rounded px-1 py-1 w-16">
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                    <select id="first-crossing-minutes" class="border rounded px-1 py-1 w-[4.5rem]">
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <span>at</span>
+                <div class="relative">
+                    <input type="time" id="first-crossing-time" class="border rounded px-2 py-1">
+                    <div id="first-crossing-time-blink" class="absolute inset-0 bg-yellow-200 opacity-0 pointer-events-none"></div>
+                </div>
+            </div>
+            <div id="first-crossing-weather" class="text-lg"></div>
+        </div>
+
+        <!-- Second crossing information -->
+        <div id="second-crossing" class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-1xl font-semibold mb-2 sm:mb-4">2nd GGB Crossing</h2>
+            <div class="flex items-center space-x-2 sm:space-x-4 mb-2 sm:mb-4">
+                <!-- Desktop view for time difference input -->
+                <input type="text" id="second-crossing-time-diff" class="border rounded px-2 py-1 w-20 hidden sm:inline">
+                <!-- Mobile view for time difference input -->
+                <div class="flex space-x-1 sm:hidden">
+                    <select id="second-crossing-hours" class="border rounded px-1 py-1 w-16">
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                    <select id="second-crossing-minutes" class="border rounded px-1 py-1 w-[4.5rem]">
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <span>later at</span>
+                <input type="time" id="second-crossing-time" class="border rounded px-2 py-1">
+            </div>
+            <div id="second-crossing-weather" class="text-lg"></div>
+        </div>
+    </div>
+
+    <div>
+        <div class="text-sm sm:mt-0 mt-2 sm:mb-6 mb-0 text-center">
+            <a href="https://github.com/danielraffel/ggb" target="_blank" style="text-decoration: underline;">About this Site</a> | <a href="https://danielraffel.github.io/ggb/chart.html" target="_blank" style="text-decoration: underline;">Best Time to Visit GGB Today</a>
+        </div>
+    </div>
+
+    <script>
+        // Helper functions
+        
+        // Get and set functions for localStorage
+        function getFirstCrossingTimeDiff() {
+            return localStorage.getItem('firstCrossingTimeDiff') || '0h0m';
+        }
+
+        function setFirstCrossingTimeDiff(value) {
+            localStorage.setItem('firstCrossingTimeDiff', value);
+        }
+
+        function getSecondCrossingTimeDiff() {
+            return localStorage.getItem('secondCrossingTimeDiff') || '2h0m';
+        }
+
+        function setSecondCrossingTimeDiff(value) {
+            localStorage.setItem('secondCrossingTimeDiff', value);
+        }
+
+        // Normalize time difference to standard format
+        function normalizeTimeDiff(value) {
+            if (/^(0|0[hm]|0h0m)$/.test(value)) {
+                return '0h0m';
+            }
+            return value;
+        }
+
+        // Parse time difference string to minutes
+        function parseTimeDiff(timeDiff) {
+            if (timeDiff === '0' || timeDiff === '0h' || timeDiff === '0m' || timeDiff === '0h0m') {
+                return 0;
+            }
+            const match = timeDiff.match(/^(?:(\d+)h)?(?:(\d+)m)?$/);
+            if (match) {
+                const hours = parseInt(match[1] || '0');
+                const minutes = parseInt(match[2] || '0');
+                return hours * 60 + minutes;
+            }
+            return 0;
+        }
+
+        // Format minutes to time difference string
+        function formatTimeDiff(minutes) {
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            if (hours === 0 && mins === 0) return '0h0m';
+            if (hours === 0) return `${mins}m`;
+            if (mins === 0) return `${hours}h`;
+            return `${hours}h${mins}m`;
+        }
+
+        // Add minutes to a date
+        function addMinutesToDate(date, minutes) {
+            return new Date(date.getTime() + minutes * 60000);
+        }
+
+        // Get minutes between two dates
+        function getMinutesBetweenDates(date1, date2) {
+            return Math.round((date2 - date1) / 60000);
+        }
+
+        // Format time to HH:MM
+        function formatTime(date) {
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        // Format sunset time
+        function formatSunsetTime(date) {
+            const hours = date.getHours();
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const period = hours >= 12 ? 'pm' : 'am';
+            const formattedHours = hours % 12 || 12;
+            return `${formattedHours}:${minutes}${period}`;
+        }
+
+        // Format date and time
+        function formatDateTime(date) {
+            return date.toLocaleString('en-US', { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit', 
+                hour12: true 
+            });
+        }
+
+        // DOM elements
+        const firstCrossingTimeDiff = document.getElementById('first-crossing-time-diff');
+        const firstCrossingTime = document.getElementById('first-crossing-time');
+        const secondCrossingTimeDiff = document.getElementById('second-crossing-time-diff');
+        const secondCrossingTime = document.getElementById('second-crossing-time');
+        const firstCrossingWeather = document.getElementById('first-crossing-weather');
+        const secondCrossingWeather = document.getElementById('second-crossing-weather');
+        const sunsetInfo = document.getElementById('sunset-info');
+        const firstHoursSelect = document.getElementById('first-crossing-hours');
+        const firstMinutesSelect = document.getElementById('first-crossing-minutes');
+        const secondHoursSelect = document.getElementById('second-crossing-hours');
+        const secondMinutesSelect = document.getElementById('second-crossing-minutes');
+
+        // Main logic functions
+        
+        // Update first crossing information
+        function updateFirstCrossing() {
+            const now = new Date();
+            let fcitMinutes = parseTimeDiff(firstCrossingTimeDiff.value);
+            let fcat = new Date(now.getTime() + fcitMinutes * 60000);
+
+            if (fcitMinutes === 0) {
+                fcat = new Date(now.getTime());
+            }
+
+            // Log current time
+            // console.log(`Current time: ${formatDateTime(now)}`);
+            // Log first crossing offset in minutes
+            // console.log(`First crossing offset: ${fcitMinutes} minutes`);
+            // Log calculated first crossing time
+            // console.log(`Calculated first crossing time: ${formatDateTime(fcat)}`);
+
+            firstCrossingTime.value = formatTime(fcat);
+            firstCrossingTimeDiff.value = formatTimeDiff(fcitMinutes);
+
+            updateAllInputs();
+            updateSecondCrossing(fcat);
+            updateWeather('first', fcat);
+            // Log current state after updating first crossing
+            // logCurrentState();
+        }
+
+        // Update second crossing information
+        function updateSecondCrossing(fcat) {
+            const now = new Date();
+            if (!fcat) {
+                const [hours, minutes] = firstCrossingTime.value.split(':');
+                fcat = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(hours), parseInt(minutes));
+                // Log first crossing time when derived from input
+                // console.log(`First crossing time (from input): ${formatDateTime(fcat)}`);
+            } else {
+                // Log first crossing time when provided as parameter
+                // console.log(`First crossing time (from parameter): ${formatDateTime(fcat)}`);
+            }
+
+            let scitMinutes = parseTimeDiff(secondCrossingTimeDiff.value);
+            // Log second crossing offset in minutes
+            // console.log(`Second crossing offset: ${scitMinutes} minutes`);
+
+            let scat = new Date(fcat.getTime() + scitMinutes * 60000);
+            // Log calculated second crossing time
+            // console.log(`Calculated second crossing time: ${formatDateTime(scat)}`);
+
+            secondCrossingTime.value = formatTime(scat);
+            secondCrossingTimeDiff.value = formatTimeDiff(scitMinutes);
+
+            // Save the second crossing time difference
+            setSecondCrossingTimeDiff(secondCrossingTimeDiff.value);
+
+            updateAllInputs();
+            updateWeather('second', scat);
+            // Log current state after updating second crossing
+            // logCurrentState();
+        }
+
+        // Handle first crossing time change
+        function handleFirstCrossingTimeChange() {
+            const now = new Date();
+            const [hours, minutes] = firstCrossingTime.value.split(':');
+            let fcat = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(hours), parseInt(minutes));
+
+            let fcitMinutes = getMinutesBetweenDates(now, fcat);
+            if (fcitMinutes < 0) {
+                fcitMinutes += 24 * 60; // Add 24 hours if it's for the next day
+            }
+
+            firstCrossingTimeDiff.value = formatTimeDiff(fcitMinutes);
+            setFirstCrossingTimeDiff(firstCrossingTimeDiff.value);
+
+            console.log(`First crossing time (after change): ${formatDateTime(fcat)}`);
+            console.log(`New first crossing offset: ${fcitMinutes} minutes`);
+
+            updateFirstCrossing();
+        }
+
+        // Handle second crossing time change
+        function handleSecondCrossingTimeChange() {
+            const [firstHours, firstMinutes] = firstCrossingTime.value.split(':');
+            const [secondHours, secondMinutes] = secondCrossingTime.value.split(':');
+            const now = new Date();
+            
+            let fcat = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(firstHours), parseInt(firstMinutes));
+            let scat = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(secondHours), parseInt(secondMinutes));
+            
+            let scitMinutes = getMinutesBetweenDates(fcat, scat);
+            if (scitMinutes < 0) {
+                scitMinutes += 24 * 60; // Add 24 hours if it's for the next day
+            }
+
+            secondCrossingTimeDiff.value = formatTimeDiff(scitMinutes);
+            setSecondCrossingTimeDiff(secondCrossingTimeDiff.value);
+            
+            console.log(`Second crossing time changed to: ${formatDateTime(scat)}`);
+            console.log(`New second crossing offset: ${scitMinutes} minutes`);
+            
+            updateSecondCrossing(fcat);
+        }
+
+        // Update single input (for mobile view)
+        function updateSingleInput(timeDiffInput, hoursSelect, minutesSelect, crossing) {
+            const hours = parseInt(hoursSelect.value);
+            const minutes = parseInt(minutesSelect.value);
+            const value = formatTimeDiff(hours * 60 + minutes);
+            timeDiffInput.value = value;
+            
+            if (crossing === 'first') {
+                setFirstCrossingTimeDiff(value);
+                updateFirstCrossing();
+            } else {
+                setSecondCrossingTimeDiff(value);
+                updateSecondCrossing();
+            }
+        }
+
+        // Populate hour and minute dropdowns
+        function populateDropdowns(hoursSelect, minutesSelect) {
+            hoursSelect.innerHTML = '';
+            minutesSelect.innerHTML = '';
+
+            for (let i = 0; i <= 23; i++) {
+                hoursSelect.innerHTML += `<option value="${i}">${i}h</option>`;
+            }
+
+            for (let i = 0; i <= 59; i++) {
+                minutesSelect.innerHTML += `<option value="${i}">${i}m</option>`;
+            }
+        }
+
+        // Update dropdowns when single input changes
+        function updateDropdowns(timeDiffInput, hoursSelect, minutesSelect) {
+            const [hours, minutes] = parseTimeDiff(timeDiffInput.value);
+            hoursSelect.value = hours;
+            minutesSelect.value = minutes;
+        }
+
+        // Fetch sunset data
+        async function fetchSunsetData() {
+            const now = new Date();
+            // Log current system time when fetching sunset data
+            // console.log('Current system time:', now);
+            const today = now.toISOString().split('T')[0];
+            const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            
+            try {
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=37.8199&longitude=-122.4783&daily=sunset&timezone=America/Los_Angeles&start_date=${today}&end_date=${tomorrow}`;
+                const response = await axios.get(url);
+                const data = response.data;
+                
+                if (data.daily && data.daily.sunset && data.daily.sunset.length >= 2) {
+                    const todaySunset = new Date(data.daily.sunset[0]);
+                    const tomorrowSunset = new Date(data.daily.sunset[1]);
+                    
+                    let sunsetToShow;
+                    let dateToShow;
+                    
+                    // Compare dates without time
+                    const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    const todaySunsetDate = new Date(todaySunset.getFullYear(), todaySunset.getMonth(), todaySunset.getDate());
+                    
+                    if (nowDate.getTime() === todaySunsetDate.getTime()) {
+                        // If the dates match, it's today
+                        sunsetToShow = todaySunset;
+                        dateToShow = now;
+                        // Log when showing today's sunset
+                        // console.log('Showing today\'s sunset');
+                    } else {
+                        // If the dates don't match, it's tomorrow
+                        sunsetToShow = tomorrowSunset;
+                        dateToShow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+                        // Log when showing tomorrow's sunset
+                        // console.log('Showing tomorrow\'s sunset');
+                    }
+                    
+                    const formattedDate = dateToShow.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+                    sunsetInfo.innerHTML = `<p>Sunset at ${formatSunsetTime(sunsetToShow)} on ${formattedDate}</p>`;
+                } else {
+                    sunsetInfo.innerHTML = '<p>Sunset information not available.</p>';
+                }
+            } catch (error) {
+                console.error('Error fetching sunset data:', error);
+                sunsetInfo.innerHTML = '<p>Sunset information not available.</p>';
+            }
+        }
+
+        // Update weather information for a given crossing (first or second) at a specific time
+        async function updateWeather(crossing, specificTime = null) {
+            // Determine the time input and weather info element based on the crossing type
+            const timeInput = crossing === 'first' ? firstCrossingTime : secondCrossingTime;
+            const weatherInfo = crossing === 'first' ? firstCrossingWeather : secondCrossingWeather;
+
+            try {
+                // Get the current date and time
+                const now = new Date();
+                // If a specific time is provided, use it; otherwise, use the time input value
+                let targetTime = specificTime ? new Date(specificTime) : new Date(now.getFullYear(), now.getMonth(), now.getDate(), ...timeInput.value.split(':').map(Number));
+
+                // If the target time is in the past, move it to the next day
+                if (targetTime < now) {
+                    targetTime.setDate(targetTime.getDate() + 1);
+                }
+
+                // Format the start and end dates for the API request
+                const formattedStartDate = now.toISOString().split('T')[0];
+                const formattedEndDate = new Date(targetTime.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+                // Round the target time to the nearest hour and format it for the API request
+                const roundedTime = new Date(targetTime.getFullYear(), targetTime.getMonth(), targetTime.getDate(), targetTime.getHours() + Math.round(targetTime.getMinutes() / 60));
+                const apiTimeString = roundedTime.toISOString().slice(0, 16);
+
+                // Fetch weather data from the API
+                const response = await axios.get(`https://api.open-meteo.com/v1/forecast?latitude=37.8199&longitude=-122.4783&hourly=temperature_2m,windspeed_10m,precipitation_probability&timezone=America/Los_Angeles&start_date=${formattedStartDate}&end_date=${formattedEndDate}&temperature_unit=fahrenheit`);
+
+                // Check if the response contains hourly data
+                if (!response.data.hourly || !response.data.hourly.time) {
+                    weatherInfo.innerHTML = '<p>No weather data available.</p>';
+                    return;
+                }
+
+                // Find the index of the target time in the hourly data
+                const index = response.data.hourly.time.findIndex(t => t === apiTimeString);
+
+                // If the target time is not found or is out of bounds, display an error message
+                if (index < 0 || index >= response.data.hourly.temperature_2m.length) {
+                    weatherInfo.innerHTML = '<p>No weather data available for this time.</p>';
+                    return;
+                }
+
+                // Extract weather data for the target time
+                const temperature = response.data.hourly.temperature_2m[index];
+                const windSpeed = response.data.hourly.windspeed_10m[index];
+                const precipitationProbability = response.data.hourly.precipitation_probability[index];
+
+                // Determine if it's likely to rain based on the precipitation probability
+                const isLikelyToRain = precipitationProbability > 30 ? 'Yes' : 'No';
+
+                // Update the weather info element with the fetched data
+                weatherInfo.innerHTML = `
+                    <p>Temperature: ${temperature}°F</p>
+                    <p>Wind Speed: ${windSpeed} mph</p>
+                    <p>Likely to Rain: ${isLikelyToRain} (${precipitationProbability}% chance)</p>
+                `;
+
+            } catch (error) {
+                // Log and display an error message if the weather data fetch fails
+                console.error(`Error fetching weather data for ${crossing} crossing:`, error);
+                weatherInfo.innerHTML = '<p>Unable to fetch weather data. Please try again later.</p>';
+            }
+        }
+
+        // Initialize page
+        function initializePage() {
+            const now = new Date();
+            // Log when initializing the page
+            // console.log(`Initializing page at: ${formatDateTime(now)}`);
+            
+            // Set first crossing time
+            const firstTimeDiff = normalizeTimeDiff(getFirstCrossingTimeDiff());
+            firstCrossingTimeDiff.value = firstTimeDiff;
+
+            // Set second crossing time
+            const secondTimeDiff = normalizeTimeDiff(getSecondCrossingTimeDiff());
+            secondCrossingTimeDiff.value = secondTimeDiff;
+
+            updateFirstCrossing();
+
+            // Populate dropdowns
+            populateDropdowns(firstHoursSelect, firstMinutesSelect);
+            populateDropdowns(secondHoursSelect, secondMinutesSelect);
+
+            // Update dropdowns with initial values
+            updateMobileInputs();
+        }
+
+        // Event listeners
+        firstCrossingTimeDiff.addEventListener('change', () => {
+            setFirstCrossingTimeDiff(firstCrossingTimeDiff.value);
+            updateFirstCrossing();
+        });
+
+        secondCrossingTimeDiff.addEventListener('change', () => {
+            setSecondCrossingTimeDiff(secondCrossingTimeDiff.value);
+            updateSecondCrossing();
+        });
+
+        firstCrossingTime.addEventListener('change', () => {
+            const [hours, minutes] = firstCrossingTime.value.split(':');
+            const now = new Date();
+            let fcat = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(hours), parseInt(minutes));
+            if (fcat < now) {
+                fcat.setDate(fcat.getDate() + 1);
+            }
+            const fcitMinutes = getMinutesBetweenDates(now, fcat);
+            console.log(`First crossing time changed to: ${formatDateTime(fcat)}`);
+            console.log(`New first crossing offset: ${fcitMinutes} minutes`);
+            firstCrossingTimeDiff.value = formatTimeDiff(fcitMinutes);
+            updateFirstCrossing();
+        });
+
+        secondCrossingTime.addEventListener('change', () => {
+            const [firstHours, firstMinutes] = firstCrossingTime.value.split(':');
+            const [secondHours, secondMinutes] = secondCrossingTime.value.split(':');
+            const now = new Date();
+            let fcat = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(firstHours), parseInt(firstMinutes));
+            let scat = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(secondHours), parseInt(secondMinutes));
+            if (fcat < now) {
+                fcat.setDate(fcat.getDate() + 1);
+            }
+            if (scat <= fcat) {
+                scat.setDate(scat.getDate() + 1);
+            }
+            const scitMinutes = getMinutesBetweenDates(fcat, scat);
+            console.log(`Second crossing time changed to: ${formatDateTime(scat)}`);
+            console.log(`New second crossing offset: ${scitMinutes} minutes`);
+            secondCrossingTimeDiff.value = formatTimeDiff(scitMinutes);
+            setSecondCrossingTimeDiff(secondCrossingTimeDiff.value);
+            updateSecondCrossing(fcat);
+        });
+
+        // Function to update weather periodically
+        function startWeatherUpdate() {
+            setInterval(() => {
+                updateWeather('first');
+                updateWeather('second');
+            }, 60000); // Update every minute
+        }
+
+        // Helper function to log the current state
+        function logCurrentState() {
+            // Log current state header
+            // console.log('Current State:');
+            // Log first crossing time difference
+            // console.log(`First crossing time diff: ${firstCrossingTimeDiff.value}`);
+            // Log first crossing time
+            // console.log(`First crossing time: ${firstCrossingTime.value}`);
+            // Log second crossing time difference
+            // console.log(`Second crossing time diff: ${secondCrossingTimeDiff.value}`);
+            // Log second crossing time
+            // console.log(`Second crossing time: ${secondCrossingTime.value}`);
+        }
+
+        // Call fetchSunsetData on page load
+        fetchSunsetData();
+
+        // Start periodic weather updates
+        startWeatherUpdate();
+
+        // Initialize the page
+        initializePage();
+
+        // Functions to handle mobile input changes
+        function handleMobileFirstCrossingChange() {
+            const hours = parseInt(firstHoursSelect.value);
+            const minutes = parseInt(firstMinutesSelect.value);
+            const value = formatTimeDiff(hours * 60 + minutes);
+            firstCrossingTimeDiff.value = value;
+            setFirstCrossingTimeDiff(value);
+            updateFirstCrossing();
+        }
+
+        function handleMobileSecondCrossingChange() {
+            const hours = parseInt(secondHoursSelect.value);
+            const minutes = parseInt(secondMinutesSelect.value);
+            const value = formatTimeDiff(hours * 60 + minutes);
+            secondCrossingTimeDiff.value = value;
+            setSecondCrossingTimeDiff(value);
+            updateSecondCrossing();
+        }
+
+        // Event listeners for mobile inputs
+        firstHoursSelect.addEventListener('change', handleMobileFirstCrossingChange);
+        firstMinutesSelect.addEventListener('change', handleMobileFirstCrossingChange);
+        secondHoursSelect.addEventListener('change', handleMobileSecondCrossingChange);
+        secondMinutesSelect.addEventListener('change', handleMobileSecondCrossingChange);
+
+        // Function to update mobile inputs from desktop values
+        function updateMobileInputs() {
+            const firstMinutes = parseTimeDiff(firstCrossingTimeDiff.value);
+            firstHoursSelect.value = Math.floor(firstMinutes / 60);
+            firstMinutesSelect.value = firstMinutes % 60;
+
+            const secondMinutes = parseTimeDiff(secondCrossingTimeDiff.value);
+            secondHoursSelect.value = Math.floor(secondMinutes / 60);
+            secondMinutesSelect.value = secondMinutes % 60;
+        }
+
+        // Function to update both mobile and desktop inputs
+        function updateAllInputs() {
+            updateMobileInputs();
+            firstCrossingTime.value = formatTime(addMinutesToDate(new Date(), parseTimeDiff(firstCrossingTimeDiff.value)));
+            secondCrossingTime.value = formatTime(addMinutesToDate(new Date(), parseTimeDiff(firstCrossingTimeDiff.value) + parseTimeDiff(secondCrossingTimeDiff.value)));
+        }
+
+        // Window resize event listener
+        window.addEventListener('resize', updateAllInputs);
+
+        // Function to determine if it's night time (between 8 PM and 6 AM)
+        function isNightTime() {
+            const hour = new Date().getHours();
+            return hour < 6 || hour >= 20; // Consider night time between 8 PM and 6 AM
+        }
+
+        // Function to apply the appropriate theme based on time of day
+        function applyTheme() {
+            const body = document.body;
+            const isNight = isNightTime();
+            
+            if (isNight) {
+                body.classList.add('night-mode');
+            } else {
+                body.classList.remove('night-mode');
+            }
+        }
+
+        // Apply theme on page load
+        applyTheme();
+
+        // Check and update theme every minute
+        setInterval(applyTheme, 60000);
+    </script>
+</body>
+</html>
