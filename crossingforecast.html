@@ -390,7 +390,7 @@
                     }
                     
                     const formattedDate = dateToShow.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-                    sunsetInfo.innerHTML = `<p>Sunset at ${formatSunsetTime(sunsetToShow)} on ${formattedDate}</p>`;
+                    sunsetInfo.innerHTML = `<p>Next sunset at ${formatSunsetTime(sunsetToShow)} on ${formattedDate}</p>`;
                 } else {
                     sunsetInfo.innerHTML = '<p>Sunset information not available.</p>';
                 }
