@@ -41,6 +41,29 @@
             box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -1px rgba(255, 255, 255, 0.06);
         }
 
+        /* Container for the image, controls aspect ratio and cropping */
+        .image-container {
+            position: relative;
+            width: 100%;
+            padding-top: 63.75%; /* 75% * 0.85 to crop 15% of height */
+            overflow: hidden;
+        }
+
+        /* Styles for the image itself */
+        #ggb-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 117.65%; /* 100 / 0.85 to compensate for cropping */
+            object-fit: cover; /* Ensures image fills container without distortion */
+            object-position: center top; /* Aligns image to top, cropping from bottom */
+            transition: opacity 0.3s ease-in-out;
+        }
+        #ggb-image.loading {
+            opacity: 0.5;
+        }
+
         @media (max-width: 640px) {
             #mobile-legend {
                 display: flex;
@@ -78,14 +101,20 @@
             }
         }
     </style>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 </head>
 <body class="bg-gray-100 min-h-screen">
     <div class="container mx-auto px-4 py-4 sm:py-8">
         <h1 class="text-3xl font-bold mb-6 text-center hidden sm:block">Golden Gate Bridge Live</h1>
         
-        <!-- Live video feed of Golden Gate Bridge -->
+        <!-- Live image feed of Golden Gate Bridge -->
         <div class="mb-2">
-            <iframe class="w-full aspect-video" scrolling="no" frameborder="0" allowfullscreen webkitallowfullscreen mozallowfullscreen allow="autoplay; fullscreen" src="https://w3.mp.lura.live/player/prod/v3/anvload.html?key=eyJtIjoiTElOIiwidiI6ImFkc3Qxa1dabWtFZ1hLeDciLCJhbnZhY2siOiJFWm1yUjRFdjV4WW5NZmRiWTVUUGM3bmFLbXkzMk1LcCIsInNoYXJlTGluayI6Imh0dHBzOi8vd3d3Lmtyb240LmNvbS9saXZlLWV2ZW50cy8iLCJwbHVnaW5zIjp7ImNvbXNjb3JlIjp7ImNsaWVudElkIjoiNjAzNjQzOSIsImMzIjoia3JvbjQuY29tIiwic2NyaXB0IjoiLy93My5tcC5sdXJhLmxpdmUvcGxheWVyL3Byb2QvdjMvcGx1Z2lucy9jb21zY29yZS9jb21zY29yZXBsdWdpbi5taW4uanMiLCJ1c2VEZXJpdmVkTWV0YWRhdGEiOnRydWUsIm1hcHBpbmciOnsiYWRsb2FkdHlwZSI6MiwiYWRNb2RlbCI6Mn0sIm9wdE91dCI6ZmFsc2V9LCJzZWdtZW50Q3VzdG9tIjp7InNjcmlwdCI6Imh0dHBzOi8vc2VnbWVudC5wc2cubmV4c3RhcmRpZ2l0YWwubmV0L2FudmF0by5qcyIsIndyaXRlS2V5IjoiUUdOcU9tbVlwaXIwZjVEWGtad2daYThsMnh2YVNJakoiLCJwbHVnaW5zTG9hZGluZ1RpbWVvdXQiOjEyfX0sImh0bWw1Ijp0cnVlLCJ0b2tlbiI6ImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSmhaSE4wTVd0WFdtMXJSV2RZUzNnM0lpd2lhWE56SWpvaVJWcHRjbEkwUlhZMWVGbHVUV1prWWxrMVZGQmpOMjVoUzIxNU16Sk5TM0FpTENKbGVIQWlPakUyTkRVd05EUXhNamw5LlJBSm1Zb1FCV0UifQ%3D%3D"></iframe>
+            <!-- Container for the image with rounded corners and hidden overflow -->
+            <div class="image-container rounded-lg overflow-hidden">
+                <img id="ggb-image" class="w-full h-full object-cover" src="https://raw.githubusercontent.com/danielraffel/ggb/main/ggb.screenshot.png" alt="Golden Gate Bridge">
+            </div>
             <div id="sunset-info" class="text-sm mt-2 text-center"></div>
         </div>
 
@@ -726,15 +755,18 @@
 
         async function fetchWeatherData() {
             try {
+                // Fetch weather data from Open-Meteo API
                 const response = await axios.get('https://api.open-meteo.com/v1/forecast?latitude=37.8199&longitude=-122.4783&hourly=temperature_2m,cloudcover,windspeed_10m,precipitation_probability&timezone=America/Los_Angeles&forecast_days=1&temperature_unit=fahrenheit');
                 const data = response.data;
 
+                // Extract and process the hourly data
                 const times = data.hourly.time.map(time => new Date(time));
                 const temperatures = data.hourly.temperature_2m;
                 const cloudCover = data.hourly.cloudcover;
                 const windSpeed = data.hourly.windspeed_10m;
                 const precipProb = data.hourly.precipitation_probability;
 
+                // Filter data to include only hours between 5am and 9pm
                 const filteredData = times.reduce((acc, time, index) => {
                     const hour = time.getHours();
                     if (hour >= 5 && hour <= 21) {  // 5am to 9pm
@@ -747,6 +779,7 @@
                     return acc;
                 }, { times: [], temperatures: [], cloudCover: [], windSpeed: [], precipProb: [] });
 
+                // Update the weather chart and best visit time with the filtered data
                 updateWeatherChart(filteredData);
                 updateBestVisitTime(filteredData);
             } catch (error) {
@@ -758,12 +791,15 @@
             const ctx = document.getElementById('weatherChart').getContext('2d');
             const isMobile = window.innerWidth <= 640;
 
+            // Destroy existing chart if it exists
             if (weatherChart) {
                 weatherChart.destroy();
             }
 
+            // Store the current chart data
             chartData = data;
 
+            // Define colors for each data series
             const chartColors = {
                 temperature: 'rgb(255, 99, 132)',
                 cloudCover: 'rgb(54, 162, 235)',
@@ -778,6 +814,7 @@
             legendItems[2].style.backgroundColor = chartColors.windSpeed;
             legendItems[3].style.backgroundColor = chartColors.precipProb;
 
+            // Create new Chart.js instance
             weatherChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -820,7 +857,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    aspectRatio: isMobile ? 1 : 2, // Adjust this value for mobile
+                    aspectRatio: isMobile ? 1 : 2, // Adjust aspect ratio for mobile
                     plugins: {
                         legend: {
                             display: !isMobile,
@@ -841,6 +878,7 @@
                         x: {
                             ticks: {
                                 callback: function(val, index) {
+                                    // Format x-axis labels
                                     const time = this.getLabelForValue(val);
                                     const [hours, minutes] = time.split(':');
                                     const hourNum = parseInt(hours);
@@ -848,6 +886,7 @@
                                     const hour12 = hourNum % 12 || 12;
 
                                     if (isMobile) {
+                                        // Show fewer labels on mobile
                                         const displayHours = [5, 7, 9, 11, 13, 15, 17, 19, 21];
                                         if (displayHours.includes(hourNum)) {
                                             return `${hour12}${amPm}`;
@@ -903,6 +942,7 @@
         function updateBestVisitTime(data) {
             let scores = [];
 
+            // Calculate scores for each time slot
             for (let i = 0; i < data.times.length; i++) {
                 const hour = data.times[i].getHours();
                 if (hour >= 6 && hour <= 20) {
@@ -916,11 +956,13 @@
                 }
             }
 
+            // Sort scores to find the best times
             scores.sort((a, b) => b.score - a.score);
 
             const bestTime1 = scores[0].time;
             const bestTime2 = scores[1].time;
 
+            // Helper function to create info list for a given time
             function createInfoList(time) {
                 const i = data.times.findIndex(t => t.getTime() === time.getTime());
                 const hours = time.getHours();
@@ -938,6 +980,7 @@
                 `;
             }
 
+            // Update the DOM with the best visit times
             document.getElementById('best-time-info-1').innerHTML = createInfoList(bestTime1);
             document.getElementById('best-time-info-2').innerHTML = createInfoList(bestTime2);
         }
@@ -954,6 +997,72 @@
                 updateWeatherChart(chartData);
             }
         });
+
+        // Function to update the image
+        async function updateGGBImage() {
+            const img = document.getElementById('ggb-image');
+            img.classList.add('loading');
+
+            try {
+                // Cache-busting technique 1: Use GitHub API to get the latest file content
+                // This bypasses GitHub's raw content caching
+                const apiUrl = 'https://api.github.com/repos/danielraffel/ggb/contents/ggb.screenshot.png';
+                const apiResponse = await fetch(apiUrl, {
+                    headers: {
+                        'Accept': 'application/vnd.github.v3+json',
+                        // Cache-busting technique 2: Add no-cache header to API request
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                const fileData = await apiResponse.json();
+
+                if (!fileData.content) {
+                    throw new Error('No content found in the API response');
+                }
+
+                // Cache-busting technique 3: Decode and use the Base64 content directly
+                // This ensures we're using the exact data returned by the API, not a cached version
+                const byteCharacters = atob(fileData.content);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], {type: 'image/png'});
+
+                // Cache-busting technique 4: Use a Blob URL
+                // This creates a unique URL for each new image version
+                const objectURL = URL.createObjectURL(blob);
+                
+                // Create a new Image object to preload the image
+                const tempImg = new Image();
+                tempImg.onload = function() {
+                    console.log('New image loaded, updating src');
+                    // Cache-busting technique 5: Update image src with the new Blob URL
+                    // This ensures the browser displays the new image, not a cached version
+                    img.src = objectURL;
+                    URL.revokeObjectURL(img.src);
+                    img.classList.remove('loading');
+                };
+                tempImg.onerror = function() {
+                    console.error('Error loading new image');
+                    img.classList.remove('loading');
+                };
+                tempImg.src = objectURL;
+            } catch (error) {
+                console.error('Error fetching image:', error);
+                img.classList.remove('loading');
+            }
+        }
+
+        // Cache-busting technique 6: Frequent updates
+        // Update the image every 30 seconds to ensure latest version
+        setInterval(updateGGBImage, 30 * 1000);
+
+        // Call updateGGBImage immediately after defining the image element
+        document.getElementById('ggb-image').onload = function() {
+            updateGGBImage();
+        };
     </script>
 </body>
 </html>
