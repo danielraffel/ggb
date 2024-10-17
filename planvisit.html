@@ -88,6 +88,29 @@
             -o-transform: translateZ(0);
             transform: translateZ(0);
         }
+
+        /* Container for the image, controls aspect ratio and cropping */
+        .image-container {
+            position: relative;
+            width: 100%;
+            padding-top: 63.75%; /* 75% * 0.85 to crop 15% of height */
+            overflow: hidden;
+        }
+
+        /* Styles for the image itself */
+        #ggb-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 117.65%; /* 100 / 0.85 to compensate for cropping */
+            object-fit: cover; /* Ensures image fills container without distortion */
+            object-position: center top; /* Aligns image to top, cropping from bottom */
+            transition: opacity 0.3s ease-in-out;
+        }
+        #ggb-image.loading {
+            opacity: 0.5;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -97,7 +120,9 @@
         
         <!-- Live video feed of Golden Gate Bridge -->
         <div class="mb-6">
-            <iframe class="w-full aspect-video" scrolling="no" frameborder="0" allowfullscreen webkitallowfullscreen mozallowfullscreen allow="autoplay; fullscreen" src="https://w3.mp.lura.live/player/prod/v3/anvload.html?key=eyJtIjoiTElOIiwidiI6ImFkc3Qxa1dabWtFZ1hLeDciLCJhbnZhY2siOiJFWm1yUjRFdjV4WW5NZmRiWTVUUGM3bmFLbXkzMk1LcCIsInNoYXJlTGluayI6Imh0dHBzOi8vd3d3Lmtyb240LmNvbS9saXZlLWV2ZW50cy8iLCJwbHVnaW5zIjp7ImNvbXNjb3JlIjp7ImNsaWVudElkIjoiNjAzNjQzOSIsImMzIjoia3JvbjQuY29tIiwic2NyaXB0IjoiLy93My5tcC5sdXJhLmxpdmUvcGxheWVyL3Byb2QvdjMvcGx1Z2lucy9jb21zY29yZS9jb21zY29yZXBsdWdpbi5taW4uanMiLCJ1c2VEZXJpdmVkTWV0YWRhdGEiOnRydWUsIm1hcHBpbmciOnsiYWRsb2FkdHlwZSI6MiwiYWRNb2RlbCI6Mn0sIm9wdE91dCI6ZmFsc2V9LCJzZWdtZW50Q3VzdG9tIjp7InNjcmlwdCI6Imh0dHBzOi8vc2VnbWVudC5wc2cubmV4c3RhcmRpZ2l0YWwubmV0L2FudmF0by5qcyIsIndyaXRlS2V5IjoiUUdOcU9tbVlwaXIwZjVEWGtad2daYThsMnh2YVNJakoiLCJwbHVnaW5zTG9hZGluZ1RpbWVvdXQiOjEyfX0sImh0bWw1Ijp0cnVlLCJ0b2tlbiI6ImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSmhaSE4wTVd0WFdtMXJSV2RZUzNnM0lpd2lhWE56SWpvaVJWcHRjbEkwUlhZMWVGbHVUV1prWWxrMVZGQmpOMjVoUzIxNU16Sk5TM0FpTENKbGVIQWlPakUyTkRVd05EUXhNamw5LlJBSm1Zb1FCV0UifQ%3D%3D"></iframe>
+            <div class="image-container rounded-lg overflow-hidden">
+                <img id="ggb-image" class="w-full h-full object-cover" src="https://raw.githubusercontent.com/danielraffel/ggb/main/ggb.screenshot.png" alt="Golden Gate Bridge">
+            </div>
         </div>
 
         <!-- Weather Chart container -->
@@ -513,6 +538,68 @@
                 createChart();
             }
         });
+
+        // Function to update the image
+        async function updateGGBImage() {
+            const img = document.getElementById('ggb-image');
+            img.classList.add('loading');
+
+            try {
+                // Cache-busting technique 1: Use GitHub API to get the latest file content
+                const apiUrl = 'https://api.github.com/repos/danielraffel/ggb/contents/ggb.screenshot.png';
+                const apiResponse = await fetch(apiUrl, {
+                    headers: {
+                        'Accept': 'application/vnd.github.v3+json',
+                        // Cache-busting technique 2: Add no-cache header to API request
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                const fileData = await apiResponse.json();
+
+                if (!fileData.content) {
+                    throw new Error('No content found in the API response');
+                }
+
+                // Cache-busting technique 3: Decode and use the Base64 content directly
+                const byteCharacters = atob(fileData.content);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], {type: 'image/png'});
+
+                // Cache-busting technique 4: Use a Blob URL
+                const objectURL = URL.createObjectURL(blob);
+                
+                // Create a new Image object to preload the image
+                const tempImg = new Image();
+                tempImg.onload = function() {
+                    console.log('New image loaded, updating src');
+                    // Cache-busting technique 5: Update image src with the new Blob URL
+                    img.src = objectURL;
+                    URL.revokeObjectURL(img.src);
+                    img.classList.remove('loading');
+                };
+                tempImg.onerror = function() {
+                    console.error('Error loading new image');
+                    img.classList.remove('loading');
+                };
+                tempImg.src = objectURL;
+            } catch (error) {
+                console.error('Error fetching image:', error);
+                img.classList.remove('loading');
+            }
+        }
+
+        // Cache-busting technique 6: Frequent updates
+        // Update the image every 30 seconds to ensure latest version
+        setInterval(updateGGBImage, 30 * 1000);
+
+        // Call updateGGBImage immediately after defining the image element
+        document.getElementById('ggb-image').onload = function() {
+            updateGGBImage();
+        };
     </script>
 </body>
 </html>
