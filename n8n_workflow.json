@@ -1,0 +1,198 @@
+{
+  "meta": {
+    "instanceId": "3035cdcb06feb14aef4fd4b75c11dfecfcc92e8eb8fd54d101ea2947bbac0777"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "edit",
+        "owner": "danielraffel",
+        "repository": "ggb",
+        "filePath": "ggb.screenshot.png",
+        "binaryData": true,
+        "commitMessage": "Update Golden Gate Bridge screenshot"
+      },
+      "name": "GitHub Create3",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        660
+      ],
+      "id": "33ac1f7f-060f-4c59-9f61-c4bf728000f7",
+      "credentials": {
+        "githubApi": {
+          "id": "cDLjyjB6L048du3h",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Log the incoming data\nconsole.log(JSON.stringify(items, null, 2));\n\n// Check if binary data exists\nif (items[0].binary && items[0].binary.data) {\n  console.log('Binary data exists');\n  return items;\n} else {\n  console.log('No binary data found');\n  throw new Error('No binary data found in the input');\n}"
+      },
+      "name": "Debug Function3",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        860,
+        660
+      ],
+      "id": "41379e3b-1437-483c-ad01-e78da51de9dd"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://REDACTED-PLAYWRIGHT-IP-ADDRESS:3000/chrome/screenshot?token=REDACTED-PLAYWRIGHT-TOKEN",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "{   \"url\": \"https://www.goldengate.org/bridge/visiting-the-bridge/current-weather/\",   \"waitForSelector\": {     \"selector\": \"video[aria-label='Camera Video Player']\",     \"timeout\": 15000   },   \"options\": {     \"type\": \"png\",     \"clip\": {       \"x\": 345,       \"y\": 489,       \"width\": 924,       \"height\": 693     }   },   \"viewport\": {     \"width\": 1300,     \"height\": 1200   },   \"bestAttempt\": true,   \"userAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36\" }",
+        "options": {}
+      },
+      "name": "HTTP Request: Screenshot2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        660
+      ],
+      "id": "17bc58e5-54a8-41ee-9e7b-461fe06b2d5c",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "sCWycGUnmkY6AdA8",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const now = new Date();\nconst currentHour = now.getHours();\n\n// Define operational hours (5 AM to 8 PM).\nconst startHour = 5;\nconst endHour = 20;\n\nif (currentHour < startHour || currentHour >= endHour) {\n  console.log('Outside operational hours. Ending workflow.');\n  return [{ json: { stopExecution: true } }];\n}\n\nconsole.log('Within operational hours. Proceeding.');\nreturn [{ json: { continueExecution: true } }];\n"
+      },
+      "id": "6cf47823-d631-41d1-a696-a0d262e38788",
+      "name": "Time Check Code Node",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        140,
+        580
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "33d15de5-8a2f-4d23-bfa9-24c53f5a3950",
+      "name": "End Workflow",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        460,
+        460
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "26bb4de0-01ad-4704-a604-e3a2a69a8236",
+      "name": "Perform Task",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        460,
+        660
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "da88bda4-c258-435a-b2b7-3dd38345df9e",
+      "name": "Schedule Trigger1",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -60,
+        580
+      ]
+    }
+  ],
+  "connections": {
+    "Debug Function3": {
+      "main": [
+        [
+          {
+            "node": "GitHub Create3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request: Screenshot2": {
+      "main": [
+        [
+          {
+            "node": "Debug Function3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Time Check Code Node": {
+      "main": [
+        [
+          {
+            "node": "End Workflow",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Perform Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Perform Task": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request: Screenshot2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Time Check Code Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {}
+}
