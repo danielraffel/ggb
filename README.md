@@ -33,7 +33,7 @@ Weather is only displayed for the current day, from 12:00 AM to 11:59 PM.
 ## Final Notes
 I developed two slightly different versions of the site:
 
-- **[The Best Time for Athletes to Cross the Golden Gate Bridge Today](https://danielraffel.github.io/ggb]** is designed for cyclists and runners who want to:  
+- **[The Best Time for Athletes to Cross the Golden Gate Bridge Today](https://danielraffel.github.io/ggb)** is designed for cyclists and runners who want to:  
   - View a real-time image of the bridge  
   - Check the weather conditions for their crossings  
   - Access a daily forecast  
