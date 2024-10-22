@@ -10,7 +10,7 @@
     <style>
         /* Animation for blinking effect */
         @keyframes blink {
-            0%, 100% { opacity: 0; }
+            0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
         .animate-blink {
@@ -243,6 +243,16 @@
             if (/^(0|0[hm]|0h0m)$/.test(value)) {
                 return '0h0m';
             }
+            const match = value.match(/^(\d+)(?:h|m)?(\d+)?m?$/);
+            if (match) {
+                const hours = parseInt(match[1]);
+                const minutes = match[2] ? parseInt(match[2]) : 0;
+                if (match[0].includes('h') || (!match[0].includes('h') && !match[0].includes('m') && hours >= 60)) {
+                    return `${hours}h${minutes}m`;
+                } else {
+                    return `${hours}m`;
+                }
+            }
             return value;
         }
 
@@ -251,11 +261,15 @@
             if (timeDiff === '0' || timeDiff === '0h' || timeDiff === '0m' || timeDiff === '0h0m') {
                 return 0;
             }
-            const match = timeDiff.match(/^(?:(\d+)h)?(?:(\d+)m)?$/);
+            const match = timeDiff.match(/^(\d+)(?:h|m)?(\d+)?m?$/);
             if (match) {
-                const hours = parseInt(match[1] || '0');
-                const minutes = parseInt(match[2] || '0');
-                return hours * 60 + minutes;
+                const firstNumber = parseInt(match[1]);
+                const secondNumber = match[2] ? parseInt(match[2]) : 0;
+                if (match[0].includes('h') || (!match[0].includes('h') && !match[0].includes('m') && firstNumber >= 60)) {
+                    return firstNumber * 60 + secondNumber;
+                } else {
+                    return firstNumber;
+                }
             }
             return 0;
         }
@@ -330,58 +344,50 @@
             let fcitMinutes = parseTimeDiff(firstCrossingTimeDiff.value);
             let fcat = new Date(now.getTime() + fcitMinutes * 60000);
 
-            if (fcitMinutes === 0) {
-                fcat = new Date(now.getTime());
+            // Ensure fcat is not before now and not after 11:59 PM today
+            const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59);
+            if (fcat < now || fcat > endOfToday) {
+                provideFeedback(firstCrossingTime);
+                fcat = new Date(Math.max(now.getTime(), Math.min(fcat.getTime(), endOfToday.getTime())));
             }
 
-            // Log current time
-            // console.log(`Current time: ${formatDateTime(now)}`);
-            // Log first crossing offset in minutes
-            // console.log(`First crossing offset: ${fcitMinutes} minutes`);
-            // Log calculated first crossing time
-            // console.log(`Calculated first crossing time: ${formatDateTime(fcat)}`);
-
+            fcitMinutes = getMinutesBetweenDates(now, fcat);
+            
             firstCrossingTime.value = formatTime(fcat);
-            firstCrossingTimeDiff.value = formatTimeDiff(fcitMinutes);
+            firstCrossingTimeDiff.value = normalizeTimeDiff(formatTimeDiff(fcitMinutes));
 
             updateAllInputs();
             updateSecondCrossing(fcat);
             updateWeather('first', fcat);
-            // Log current state after updating first crossing
-            // logCurrentState();
         }
 
         // Update second crossing information
         function updateSecondCrossing(fcat) {
-            const now = new Date();
             if (!fcat) {
                 const [hours, minutes] = firstCrossingTime.value.split(':');
+                const now = new Date();
                 fcat = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(hours), parseInt(minutes));
-                // Log first crossing time when derived from input
-                // console.log(`First crossing time (from input): ${formatDateTime(fcat)}`);
-            } else {
-                // Log first crossing time when provided as parameter
-                // console.log(`First crossing time (from parameter): ${formatDateTime(fcat)}`);
             }
 
             let scitMinutes = parseTimeDiff(secondCrossingTimeDiff.value);
-            // Log second crossing offset in minutes
-            // console.log(Second crossing offset: ${scitMinutes} minutes`);
-
             let scat = new Date(fcat.getTime() + scitMinutes * 60000);
-            // Log calculated second crossing time
-            // console.log(`Calculated second crossing time: ${formatDateTime(scat)}`);
+
+            // Ensure scat is not before fcat and not after 11:59 PM today
+            const endOfToday = new Date(fcat.getFullYear(), fcat.getMonth(), fcat.getDate(), 23, 59);
+            if (scat < fcat || scat > endOfToday) {
+                provideFeedback(secondCrossingTime);
+                scat = new Date(Math.max(fcat.getTime(), Math.min(scat.getTime(), endOfToday.getTime())));
+            }
+
+            scitMinutes = getMinutesBetweenDates(fcat, scat);
 
             secondCrossingTime.value = formatTime(scat);
-            secondCrossingTimeDiff.value = formatTimeDiff(scitMinutes);
+            secondCrossingTimeDiff.value = normalizeTimeDiff(formatTimeDiff(scitMinutes));
 
-            // Save the second crossing time difference
             setSecondCrossingTimeDiff(secondCrossingTimeDiff.value);
 
             updateAllInputs();
             updateWeather('second', scat);
-            // Log current state after updating second crossing
-            // logCurrentState();
         }
 
         // Handle first crossing time change
@@ -390,16 +396,18 @@
             const [hours, minutes] = firstCrossingTime.value.split(':');
             let fcat = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(hours), parseInt(minutes));
 
-            let fcitMinutes = getMinutesBetweenDates(now, fcat);
-            if (fcitMinutes < 0) {
-                fcitMinutes += 24 * 60; // Add 24 hours if it's for the next day
+            // Ensure fcat is not before now and not after 11:59 PM today
+            const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59);
+            if (fcat < now || fcat > endOfToday) {
+                provideFeedback(firstCrossingTime);
+                fcat = new Date(Math.max(now.getTime(), Math.min(fcat.getTime(), endOfToday.getTime())));
+                firstCrossingTime.value = formatTime(fcat);
             }
+
+            let fcitMinutes = getMinutesBetweenDates(now, fcat);
 
             firstCrossingTimeDiff.value = formatTimeDiff(fcitMinutes);
             setFirstCrossingTimeDiff(firstCrossingTimeDiff.value);
-
-            console.log(`First crossing time (after change): ${formatDateTime(fcat)}`);
-            console.log(`New first crossing offset: ${fcitMinutes} minutes`);
 
             updateFirstCrossing();
         }
@@ -413,16 +421,18 @@
             let fcat = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(firstHours), parseInt(firstMinutes));
             let scat = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(secondHours), parseInt(secondMinutes));
             
-            let scitMinutes = getMinutesBetweenDates(fcat, scat);
-            if (scitMinutes < 0) {
-                scitMinutes += 24 * 60; // Add 24 hours if it's for the next day
+            // Ensure scat is not before fcat and not after 11:59 PM today
+            const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59);
+            if (scat < fcat || scat > endOfToday) {
+                provideFeedback(secondCrossingTime);
+                scat = new Date(Math.max(fcat.getTime(), Math.min(scat.getTime(), endOfToday.getTime())));
+                secondCrossingTime.value = formatTime(scat);
             }
+
+            let scitMinutes = getMinutesBetweenDates(fcat, scat);
 
             secondCrossingTimeDiff.value = formatTimeDiff(scitMinutes);
             setSecondCrossingTimeDiff(secondCrossingTimeDiff.value);
-            
-            console.log(`Second crossing time changed to: ${formatDateTime(scat)}`);
-            console.log(`New second crossing offset: ${scitMinutes} minutes`);
             
             updateSecondCrossing(fcat);
         }
@@ -515,64 +525,50 @@
 
         // Update weather information for a given crossing (first or second) at a specific time
         async function updateWeather(crossing, specificTime = null) {
-            // Determine the time input and weather info element based on the crossing type
             const timeInput = crossing === 'first' ? firstCrossingTime : secondCrossingTime;
             const weatherInfo = crossing === 'first' ? firstCrossingWeather : secondCrossingWeather;
 
             try {
-                // Get the current date and time
                 const now = new Date();
-                // If a specific time is provided, use it; otherwise, use the time input value
                 let targetTime = specificTime ? new Date(specificTime) : new Date(now.getFullYear(), now.getMonth(), now.getDate(), ...timeInput.value.split(':').map(Number));
 
-                // If the target time is in the past, move it to the next day
-                if (targetTime < now) {
-                    targetTime.setDate(targetTime.getDate() + 1);
+                // Ensure second crossing is not earlier than the first
+                if (crossing === 'second') {
+                    const firstCrossingDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), ...firstCrossingTime.value.split(':').map(Number));
+                    if (targetTime < firstCrossingDate) {
+                        targetTime = new Date(firstCrossingDate);
+                    }
                 }
 
-                // Format the start and end dates for the API request
-                const formattedStartDate = now.toISOString().split('T')[0];
-                const formattedEndDate = new Date(targetTime.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                // If the target time is in the past, move it to now
+                if (targetTime < now) {
+                    targetTime = new Date(now);
+                }
 
-                // Round the target time to the nearest hour and format it for the API request
+                // Format the date for the API request (current date only)
+                const formattedDate = now.toISOString().split('T')[0];
+
+                // Round the target time to the nearest hour
                 const roundedTime = new Date(targetTime.getFullYear(), targetTime.getMonth(), targetTime.getDate(), targetTime.getHours() + Math.round(targetTime.getMinutes() / 60));
                 const apiTimeString = roundedTime.toISOString().slice(0, 16);
 
-                // Fetch weather data from the API
-                const response = await axios.get(`https://api.open-meteo.com/v1/forecast?latitude=37.8199&longitude=-122.4783&hourly=temperature_2m,windspeed_10m,precipitation_probability&timezone=America/Los_Angeles&start_date=${formattedStartDate}&end_date=${formattedEndDate}&temperature_unit=fahrenheit`);
+                // Fetch weather data from the API (for current date only)
+                const response = await axios.get(`https://api.open-meteo.com/v1/forecast?latitude=37.8199&longitude=-122.4783&hourly=temperature_2m,windspeed_10m,precipitation_probability&timezone=America/Los_Angeles&start_date=${formattedDate}&end_date=${formattedDate}&temperature_unit=fahrenheit`);
 
-                // Check if the response contains hourly data
-                if (!response.data.hourly || !response.data.hourly.time) {
-                    weatherInfo.innerHTML = '<p>No weather data available.</p>';
-                    return;
-                }
+                const data = response.data;
 
-                // Find the index of the target time in the hourly data
-                const index = response.data.hourly.time.findIndex(t => t === apiTimeString);
+                const hourIndex = targetTime.getHours();
 
-                // If the target time is not found or is out of bounds, display an error message
-                if (index < 0 || index >= response.data.hourly.temperature_2m.length) {
-                    weatherInfo.innerHTML = '<p>No weather data available for this time.</p>';
-                    return;
-                }
+                const temperature = data.hourly.temperature_2m[hourIndex];
+                const windSpeed = data.hourly.windspeed_10m[hourIndex];
+                const precipitationProbability = data.hourly.precipitation_probability[hourIndex];
 
-                // Extract weather data for the target time
-                const temperature = response.data.hourly.temperature_2m[index];
-                const windSpeed = response.data.hourly.windspeed_10m[index];
-                const precipitationProbability = response.data.hourly.precipitation_probability[index];
-
-                // Determine if it's likely to rain based on the precipitation probability
-                const isLikelyToRain = precipitationProbability > 30 ? 'Yes' : 'No';
-
-                // Update the weather info element with the fetched data
                 weatherInfo.innerHTML = `
-                    <p>Temperature: ${temperature}°F</p>
-                    <p>Wind Speed: ${windSpeed} mph</p>
-                    <p>Likely to Rain: ${isLikelyToRain} (${precipitationProbability}% chance)</p>
+                    <p>Temperature: ${temperature.toFixed(1)}°F</p>
+                    <p>Wind Speed: ${(windSpeed * 0.621371).toFixed(1)} mph</p>
+                    <p>Precipitation Probability: ${precipitationProbability}%</p>
                 `;
-
             } catch (error) {
-                // Log and display an error message if the weather data fetch fails
                 console.error(`Error fetching weather data for ${crossing} crossing:`, error);
                 weatherInfo.innerHTML = '<p>Unable to fetch weather data. Please try again later.</p>';
             }
@@ -613,39 +609,11 @@
             updateSecondCrossing();
         });
 
-        firstCrossingTime.addEventListener('change', () => {
-            const [hours, minutes] = firstCrossingTime.value.split(':');
-            const now = new Date();
-            let fcat = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(hours), parseInt(minutes));
-            if (fcat < now) {
-                fcat.setDate(fcat.getDate() + 1);
-            }
-            const fcitMinutes = getMinutesBetweenDates(now, fcat);
-            console.log(`First crossing time changed to: ${formatDateTime(fcat)}`);
-            console.log(`New first crossing offset: ${fcitMinutes} minutes`);
-            firstCrossingTimeDiff.value = formatTimeDiff(fcitMinutes);
-            updateFirstCrossing();
-        });
+        // First crossing time event listener
+        firstCrossingTime.addEventListener('change', handleFirstCrossingTimeChange);
 
-        secondCrossingTime.addEventListener('change', () => {
-            const [firstHours, firstMinutes] = firstCrossingTime.value.split(':');
-            const [secondHours, secondMinutes] = secondCrossingTime.value.split(':');
-            const now = new Date();
-            let fcat = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(firstHours), parseInt(firstMinutes));
-            let scat = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(secondHours), parseInt(secondMinutes));
-            if (fcat < now) {
-                fcat.setDate(fcat.getDate() + 1);
-            }
-            if (scat <= fcat) {
-                scat.setDate(scat.getDate() + 1);
-            }
-            const scitMinutes = getMinutesBetweenDates(fcat, scat);
-            console.log(`Second crossing time changed to: ${formatDateTime(scat)}`);
-            console.log(`New second crossing offset: ${scitMinutes} minutes`);
-            secondCrossingTimeDiff.value = formatTimeDiff(scitMinutes);
-            setSecondCrossingTimeDiff(secondCrossingTimeDiff.value);
-            updateSecondCrossing(fcat);
-        });
+        // Second crossing time event listener
+        secondCrossingTime.addEventListener('change', handleSecondCrossingTimeChange);
 
         // Function to update weather periodically
         function startWeatherUpdate() {
@@ -838,7 +806,7 @@
                         },
                         {
                             label: 'Wind Speed (mph)',
-                            data: data.windSpeed,
+                            data: data.windSpeed.map(speed => Number((speed * 0.621371).toFixed(1))),
                             borderColor: chartColors.windSpeed,
                             backgroundColor: chartColors.windSpeed + '33',
                             pointBackgroundColor: chartColors.windSpeed,
@@ -867,6 +835,35 @@
                                 boxWidth: 40,
                             }
                         },
+                        tooltip: {
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    // Parse the time string correctly
+                                    const timeStr = tooltipItems[0].label;
+                                    const [hours, minutes] = timeStr.split(':').map(Number);
+                                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                                    const hours12 = hours % 12 || 12;
+                                    return `${hours12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+                                },
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y.toFixed(1);
+                                        if (context.dataset.label === 'Wind Speed (mph)') {
+                                            label += ' mph';
+                                        } else if (context.dataset.label.includes('%')) {
+                                            label += '%';
+                                        } else if (context.dataset.label.includes('°F')) {
+                                            label += '°F';
+                                        }
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
                     },
                     elements: {
                         point: {
@@ -930,6 +927,8 @@
                                 display: true,
                                 text: 'Wind Speed (mph)'
                             },
+                            min: 0,
+                            max: 30,  // Adjust this based on your typical wind speed range
                             grid: {
                                 drawOnChartArea: false,
                             },
@@ -971,12 +970,15 @@
                 const hours12 = hours % 12 || 12;
                 const formattedTime = `${hours12}:${minutes}${ampm}`;
 
+                // Convert wind speed from km/h to mph
+                const windSpeedMph = (data.windSpeed[i] * 0.621371).toFixed(1);
+
                 return `
                     <li>⏰ ${formattedTime}</li>
                     <li>🌡️ ${data.temperatures[i].toFixed(1)}°F</li>
                     <li>🌧 ${data.precipProb[i]}% chance</li>
                     <li>☁️ ${data.cloudCover[i]}% cover</li>
-                    <li>🌬️ ${data.windSpeed[i].toFixed(1)} mph</li>
+                    <li>🌬️ ${windSpeedMph} mph</li>
                 `;
             }
 
@@ -1063,6 +1065,17 @@
         document.getElementById('ggb-image').onload = function() {
             updateGGBImage();
         };
+
+        // Add this function to provide subtle UX feedback
+        function provideFeedback(element) {
+            console.log('Providing feedback for', element.id);
+            element.classList.remove('animate-blink');
+            void element.offsetWidth; // Trigger reflow
+            element.classList.add('animate-blink');
+            setTimeout(() => {
+                element.classList.remove('animate-blink');
+            }, 1500);
+        }
     </script>
 </body>
 </html>
