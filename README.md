@@ -27,6 +27,9 @@ If you typically start from the same location, you can set time offsets to match
 - **Suggested Crossing Times**: The site provides the best two times to cross the bridge today, based on the forecasted conditions.
 - **Night Mode**: The site automatically switches to a dark theme between 8 PM and 6 AM for better visibility in low-light conditions.
 
+## FYI:
+Weather is only displayed for the current day, from 12:00 AM to 11:59 PM.
+
 ## Final Notes
 In addition to the [main site](https://danielraffel.github.io/ggb), I’ve created a couple of other versions to suit different audiences:
 - **[The Golden Gate Bridge Weather Forecast for Cyclists and Runners](https://danielraffel.github.io/ggb/crossingforecast.html)** is designed for athletes who know how long it takes to reach the bridge and just want a forecast for their planned crossing times.
