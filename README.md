@@ -31,6 +31,14 @@ If you typically start from the same location, you can set time offsets to match
 Weather is only displayed for the current day, from 12:00 AM to 11:59 PM.
 
 ## Final Notes
-In addition to the [main site](https://danielraffel.github.io/ggb), I’ve created a couple of other versions to suit different audiences:
-- **[The Golden Gate Bridge Weather Forecast for Cyclists and Runners](https://danielraffel.github.io/ggb/crossingforecast.html)** is designed for athletes who know how long it takes to reach the bridge and just want a forecast for their planned crossing times.
-- **[The Best Time for Visitors to SF to Plan to Cross the Golden Gate Bridge Today](https://danielraffel.github.io/ggb/planvisit.html)** is ideal for tourists who want to quickly find the best time to cross the bridge based on forecasted weather conditions.
+I developed two slightly different versions of the site:
+
+- **[The Best Time for Athletes to Cross the Golden Gate Bridge Today](https://danielraffel.github.io/ggb]** is designed for cyclists and runners who want to:  
+  - View a real-time image of the bridge  
+  - Check the weather conditions for their crossings  
+  - Access a daily forecast  
+  - Get recommendations for the best times to cross  
+
+- **[Golden Gate Bridge Weather Forecast for Cyclists and Runners](https://danielraffel.github.io/ggb/crossingforecast.html)** is designed for cyclists and runners who know when they are cycling and just want to:  
+  - View a real-time image of the bridge  
+  - Check the expected weather for their planned crossings
