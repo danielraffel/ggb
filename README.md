@@ -1,3 +1,5 @@
+**TL;DR:** Visit [danielraffel.github.io/ggb](https://danielraffel.github.io/ggb) to check today’s weather conditions for crossing the Golden Gate Bridge.
+
 # Best Times to Cross the Golden Gate Bridge Today, Based on Weather Conditions
 I frequently ride across the Golden Gate Bridge and wanted an easy way to check current and future weather conditions so I could dress appropriately. This site provides real-time weather updates along with a customizable forecast for both crossings. It’s ideal for cyclists, runners, and walkers who want to plan their trip based on accurate weather data.
 
