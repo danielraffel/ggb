@@ -79,7 +79,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const now = new Date();\nconst currentHour = now.getHours();\n\n// Define operational hours (5 AM to 8 PM).\nconst startHour = 5;\nconst endHour = 20;\n\nif (currentHour < startHour || currentHour >= endHour) {\n  console.log('Outside operational hours. Ending workflow.');\n  return [{ json: { stopExecution: true } }];\n}\n\nconsole.log('Within operational hours. Proceeding.');\nreturn [{ json: { continueExecution: true } }];\n"
+        "jsCode": "// Specify the desired timezone\nconst timeZone = 'America/Los_Angeles';\n\n// Get the current time in the specified timezone\nconst nowInTimeZone = new Date(new Date().toLocaleString('en-US', { timeZone }));\n\n// Extract the current hour\nconst currentHour = nowInTimeZone.getHours();\n\n// Define operational hours (5 AM to 9 PM)\nconst startHour = 5;\nconst endHour = 20;\n\n// Logging for debugging\nconsole.log(`Current timezone: ${timeZone}`);\nconsole.log(`Current time: ${nowInTimeZone.toLocaleString('en-US', { timeZone })}`);\nconsole.log(`Current hour: ${currentHour}`);\nconsole.log(`Start hour: ${startHour}`);\nconsole.log(`End hour: ${endHour}`);\n\nif (currentHour >= startHour && currentHour < endHour) {\n    console.log(`Within operational hours (${currentHour}). Proceeding.`);\n    return [{ json: { continueExecution: true } }];\n}\n\nconsole.log(`Outside operational hours (${currentHour}). Ending workflow.`);\nreturn [{ json: { continueExecution: false } }];\n"
       },
       "id": "6cf47823-d631-41d1-a696-a0d262e38788",
       "name": "Time Check Code Node",
