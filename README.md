@@ -21,6 +21,7 @@ If you typically start from the same location, you can set time offsets to match
 - **[Axios](https://axios-http.com/docs/intro)**: Used to fetch real-time weather data from the [Open-Meteo API](https://open-meteo.com/en/docs).
 - **JavaScript**: Dynamically updates weather conditions every 10 minutes without needing a page refresh.
 - **Local Storage**: Saves your time offset settings so they are applied automatically during future visits.
+- **N8N Workflow**: Runs a cron that uses browserless and playwright to clip the GGB web cam page and upload the screenshot to this repo every 5 min between 5am and 8pm PST.
 
 ## Additional Features
 - **Crossing Time Adjustment**: You can enter times for both crossings. The site will display weather forecasts for both your outbound and return trips, factoring in the time it takes to reach the bridge.
