@@ -12,7 +12,7 @@ If you typically start from the same location, you can set time offsets to match
 - **Real-Time Weather Conditions**: Current temperature, wind speed, rain probability, and sunset time, updated every 10 minutes.
 - **Future Weather Forecast**: By default, the forecast is set for 2 hours ahead, but you can adjust the time to match your ride. The site suggests the best two crossing windows based on today’s forecast.
 - **Time Offsets**: Set custom time offsets for both outbound and return trips. These offsets are saved in local storage and automatically applied on your next visit.
-- **Screenshot from Live Web Cam**: A screenshot from the Golden Gate Bridge webcam is captured every 5 minutes, documenting its visual condition. Screenshots are updated only between sunrise and sunset PST; at night, from sunset to sunrise, updates are paused. 
+- **Screenshot from Live Web Cam**: A screenshot from the Golden Gate Bridge webcam is captured every 5 minutes, documenting its visual condition. Screenshots are updated only between sunrise and civil twilight PST (eg after the sun has set ~6 degrees below the horizon); at night, from civil twilight to sunrise, updates are paused. 
 - **Sunset Time**: Automatically shows today’s sunset time, helping you plan for daylight hours.
 
 ## How It Was Built
