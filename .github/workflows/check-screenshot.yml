@@ -1,0 +1,27 @@
+name: Check Screenshot
+
+on:
+  push:
+    paths:
+      - 'ggb.screenshot.png'
+
+jobs:
+  validate-screenshot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install pillow numpy requests
+
+      - name: Run screenshot validator
+        env:
+          GGB_WEBHOOK_SECRET: ${{ secrets.GGB_WEBHOOK_SECRET }}
+        run: python detect_screenshot.py
