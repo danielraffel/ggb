@@ -9,7 +9,7 @@ WHITE_THRESHOLD = 0.95
 BLACK_THRESHOLD = 0.95
 SCAN_HEIGHT = 100
 TOLERANCE = 10  # for near-white pixels
-WEBHOOK_URL = "https://n8n.boom.box.ca/webhook-test/a39a038b-cf26-4531-8e49-074f97fc0e71"
+WEBHOOK_URL = "https://n8n.boom.box.ca/webhook/a39a038b-cf26-4531-8e49-074f97fc0e71"
 WEBHOOK_SECRET = os.environ.get("GGB_WEBHOOK_SECRET")
 
 def is_white(region, tolerance=TOLERANCE):
