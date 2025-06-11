@@ -25,13 +25,16 @@ jobs:
       run: |
         python scripts/check_image_staleness.py
       env:
-        IMAGE_URL: "https://raw.githubusercontent.com/danielraffel/ggb/main/ggb.screenshot.png"
+        IMAGE_PATH: "ggb.screenshot.png"
+        GITHUB_REPO: "danielraffel/ggb"
+        BRANCH: "main"
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         LATITUDE: "37.8199"
         LONGITUDE: "-122.4783"
         TIMEZONE: "America/Los_Angeles"
 
     - name: SSH & Restart n8n if stale
-      if: success() && steps.check.outputs.stale == 'true'
+      if: steps.check.outputs.stale == 'true'
       run: |
         echo "$SSH_KEY" > key.pem
         chmod 600 key.pem
