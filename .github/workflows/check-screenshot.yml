@@ -8,7 +8,8 @@ on:
 jobs:
   validate-screenshot:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write  # Add this line
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
