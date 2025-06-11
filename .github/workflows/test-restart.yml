@@ -1,0 +1,16 @@
+name: Test SSH Restart Script
+
+on:
+  workflow_dispatch:  # allows manual trigger
+
+jobs:
+  test-ssh-restart:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run SSH command to restart both services
+        run: |
+          echo "$SSH_KEY" > key.pem
+          chmod 600 key.pem
+          ssh -i key.pem -o StrictHostKeyChecking=no USERNAME@HOST
+        env:
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
