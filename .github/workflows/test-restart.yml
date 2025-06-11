@@ -7,14 +7,14 @@ jobs:
   restart:
     runs-on: ubuntu-latest
     steps:
-    - name: Create SSH key file
-      run: |
-        echo "$SSH_KEY" > key.pem
-        chmod 600 key.pem
-      env:
-        SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Create SSH key file
+        run: |
+          echo "$SSH_KEY" > key.pem
+          chmod 600 key.pem
+        env:
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Trigger restart.sh and confirm
-      run: |
-        ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} \
-        '/home/${{ secrets.SSH_USERNAME }}/restart.sh && echo "✅ restart.sh executed" && tail -n 10 /home/${{ secrets.SSH_USERNAME }}/restart.log'
+      - name: Run remote restart script and confirm
+        run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} \
+          '/home/${{ secrets.SSH_USERNAME }}/restart.sh && echo "✅ restart.sh executed successfully" && tail -n 10 /home/${{ secrets.SSH_USERNAME }}/restart.log'
