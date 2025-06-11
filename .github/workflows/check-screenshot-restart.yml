@@ -1,0 +1,54 @@
+name: Check Screenshot Update & Restart n8n
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  check-screenshot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: pip install pytz requests astral
+
+      - name: Run Python check script
+        id: check
+        run: |
+          python scripts/check_image_staleness.py
+        env:
+          IMAGE_PATH: "ggb.screenshot.png"
+          GITHUB_REPO: "danielraffel/ggb"
+          BRANCH: "main"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LATITUDE: "37.8199"
+          LONGITUDE: "-122.4783"
+          TIMEZONE: "America/Los_Angeles"
+
+      - name: SSH & Restart n8n if stale
+        if: steps.check.outputs.stale == 'true'
+        run: |
+          echo "$SSH_KEY" > key.pem
+          chmod 600 key.pem
+          ssh -i key.pem -o StrictHostKeyChecking=no $SSH_USERNAME@$SSH_HOST << 'EOF'
+            set -e
+            echo "🔁 Restarting n8n..."
+            /home/$SSH_USERNAME/restart.sh n8n || echo "⚠️ n8n restart failed"
+
+            echo "✅ Restart attempt completed."
+            echo "📄 Last 10 lines of restart log:"
+            [ -f /home/$SSH_USERNAME/restart.log ] && tail -n 10 /home/$SSH_USERNAME/restart.log || echo "⚠️ restart.log not found"
+          EOF
+        env:
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
