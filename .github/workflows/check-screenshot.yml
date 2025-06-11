@@ -1,9 +1,9 @@
-name: Check Screenshot
+name: Validate Screenshot
 
 on:
   push:
     paths:
-      - 'ggb.screenshot.png'
+      - 'staging.ggb.screenshot.png'
 
 jobs:
   validate-screenshot:
@@ -24,4 +24,6 @@ jobs:
       - name: Run screenshot validator
         env:
           GGB_WEBHOOK_SECRET: ${{ secrets.GGB_WEBHOOK_SECRET }}
+          GGB_WEBHOOK_URL: ${{ secrets.GGB_WEBHOOK_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python detect_screenshot.py
