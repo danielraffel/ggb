@@ -6,6 +6,7 @@ on:
 jobs:
   restart:
     runs-on: ubuntu-latest
+
     steps:
       - name: Create SSH key file
         run: |
@@ -14,7 +15,13 @@ jobs:
         env:
           SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Run remote restart script and confirm
+      - name: Run remote restart scripts
         run: |
-          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} \
-          '/home/${{ secrets.SSH_USERNAME }}/restart.sh && echo "✅ restart.sh executed successfully" && tail -n 10 /home/${{ secrets.SSH_USERNAME }}/restart.log'
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} '
+            echo "🔁 Restarting change-detection-internal..." ;
+            /home/${{ secrets.SSH_USERNAME }}/restart.sh change-detection-internal || echo "⚠️ change-detection-internal restart failed" ;
+            echo "🔁 Restarting n8n..." ;
+            /home/${{ secrets.SSH_USERNAME }}/restart.sh n8n || echo "⚠️ n8n restart failed" ;
+            echo "✅ Restart attempt completed." ;
+            echo "📄 Last 10 lines of restart log:" ;
+            tail -n 10 /home/${{ secrets.SSH_USERNAME }}/restart.log'
