@@ -1,45 +1,105 @@
 {
-  "meta": {
-    "instanceId": "3035cdcb06feb14aef4fd4b75c11dfecfcc92e8eb8fd54d101ea2947bbac0777"
-  },
+  "name": "GGB Bridge Screenshot",
   "nodes": [
     {
       "parameters": {
-        "resource": "file",
-        "operation": "edit",
-        "owner": "danielraffel",
-        "repository": "ggb",
-        "filePath": "ggb.screenshot.png",
-        "binaryData": true,
-        "commitMessage": "Update Golden Gate Bridge screenshot"
+        "jsCode": "// Function to convert degrees to radians\nfunction toRadians(degrees) {\n    return degrees * Math.PI / 180;\n}\n\n// Function to convert radians to degrees\nfunction toDegrees(radians) {\n    return radians * 180 / Math.PI;\n}\n\n// Calculate approximate sunrise/sunset\nfunction getSunriseAndSunset(date, lat, lng) {\n    // Day of the year\n    const start = new Date(date.getFullYear(), 0, 0);\n    const diff = date - start;\n    const dayOfYear = Math.floor(diff / 86400000);\n    \n    // Convert latitude to radians\n    const latRad = toRadians(lat);\n    \n    // Sun's declination\n    const decl = toRadians(23.45 * Math.sin(toRadians(360/365 * (dayOfYear - 81))));\n    \n    // Hour angle\n    const hourAngleRad = Math.acos(-Math.tan(latRad) * Math.tan(decl));\n    const hourAngleDeg = toDegrees(hourAngleRad);\n    \n    // Sunrise/sunset times in decimal hours (UTC)\n    const noon = 12 - lng/15;  // Solar noon in decimal hours\n    const sunriseHour = noon - hourAngleDeg/15;\n    const sunsetHour = noon + hourAngleDeg/15;\n    \n    // Convert to Date objects\n    const sunriseDate = new Date(date);\n    sunriseDate.setUTCHours(Math.floor(sunriseHour));\n    sunriseDate.setUTCMinutes((sunriseHour % 1) * 60);\n    \n    const sunsetDate = new Date(date);\n    sunsetDate.setUTCHours(Math.floor(sunsetHour));\n    sunsetDate.setUTCMinutes((sunsetHour % 1) * 60);\n    \n    return { sunrise: sunriseDate, sunset: sunsetDate };\n}\n\n// Main execution\nconst timeZone = 'America/Los_Angeles';\nconst nowInTimeZone = new Date(new Date().toLocaleString('en-US', { timeZone }));\n\n// Golden Gate Bridge coordinates\nconst lat = 37.8199;\nconst lng = -122.4783;\n\n// Get sunrise/sunset times\nconst sunTimes = getSunriseAndSunset(nowInTimeZone, lat, lng);\n\n// Convert sunrise/sunset to local time\nconst localSunrise = new Date(sunTimes.sunrise.toLocaleString('en-US', { timeZone }));\nconst localSunset = new Date(sunTimes.sunset.toLocaleString('en-US', { timeZone }));\n\n// Logging for debugging\nconsole.log(`Current timezone: ${timeZone}`);\nconsole.log(`Current time: ${nowInTimeZone.toLocaleString()}`);\nconsole.log(`Sunrise: ${localSunrise.toLocaleString()}`);\nconsole.log(`Sunset: ${localSunset.toLocaleString()}`);\n\n// Check if current time is between sunrise and sunset\nconst isDaytime = nowInTimeZone >= localSunrise && nowInTimeZone <= localSunset;\n\nconsole.log(`Is daytime: ${isDaytime}`);\nreturn [{ json: { continueExecution: isDaytime } }];"
       },
-      "name": "GitHub Create3",
-      "type": "n8n-nodes-base.github",
+      "id": "REDACTED-ID",
+      "name": "Time Check Code: Sunset",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        1060,
-        660
-      ],
-      "id": "33ac1f7f-060f-4c59-9f61-c4bf728000f7",
-      "credentials": {
-        "githubApi": {
-          "id": "cDLjyjB6L048du3h",
-          "name": "GitHub account"
-        }
-      }
+        -100,
+        1640
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Specify the desired timezone\nconst timeZone = 'America/Los_Angeles';\n\n// Get the current time in the specified timezone\nconst nowInTimeZone = new Date(new Date().toLocaleString('en-US', { timeZone }));\n\n// Extract the current hour\nconst currentHour = nowInTimeZone.getHours();\n\n// Define operational hours (5 AM to 8 PM)\nconst startHour = 5;\nconst endHour = 20;\n\n// Logging for debugging\nconsole.log(`Current timezone: ${timeZone}`);\nconsole.log(`Current time: ${nowInTimeZone.toLocaleString('en-US', { timeZone })}`);\nconsole.log(`Current hour: ${currentHour}`);\nconsole.log(`Start hour: ${startHour}`);\nconsole.log(`End hour: ${endHour}`);\n\nif (currentHour >= startHour && currentHour < endHour) {\n    console.log(`Within operational hours (${currentHour}). Proceeding.`);\n    return [{ json: { continueExecution: true } }];\n}\n\nconsole.log(`Outside operational hours (${currentHour}). Ending workflow.`);\nreturn [{ json: { continueExecution: false } }];\n"
+      },
+      "id": "REDACTED-ID",
+      "name": "Time Check Code: Hardcoded to 8PM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        100,
+        1640
+      ]
     },
     {
       "parameters": {
         "functionCode": "// Log the incoming data\nconsole.log(JSON.stringify(items, null, 2));\n\n// Check if binary data exists\nif (items[0].binary && items[0].binary.data) {\n  console.log('Binary data exists');\n  return items;\n} else {\n  console.log('No binary data found');\n  throw new Error('No binary data found in the input');\n}"
       },
-      "name": "Debug Function3",
+      "name": "Debug Function1",
       "type": "n8n-nodes-base.function",
       "typeVersion": 1,
       "position": [
-        860,
-        660
+        1040,
+        1140
       ],
-      "id": "41379e3b-1437-483c-ad01-e78da51de9dd"
+      "id": "REDACTED-ID"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "id": "REDACTED-ID",
+      "name": "Schedule Trigger1",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -140,
+        1060
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.shouldTakeScreenshot }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "IF1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        280,
+        1060
+      ],
+      "id": "REDACTED-ID"
+    },
+    {
+      "parameters": {},
+      "id": "REDACTED-ID",
+      "name": "End Workflow",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        440,
+        1360
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "REDACTED-ID",
+      "name": "Perform Task",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        640,
+        1140
+      ]
     },
     {
       "parameters": {
@@ -59,123 +119,94 @@
         "sendBody": true,
         "contentType": "raw",
         "rawContentType": "application/json",
-        "body": "{   \"url\": \"https://www.goldengate.org/bridge/visiting-the-bridge/current-weather/\",   \"waitForSelector\": {     \"selector\": \"video[aria-label='Camera Video Player']\",     \"timeout\": 15000   },   \"options\": {     \"type\": \"png\",     \"clip\": {       \"x\": 345,       \"y\": 489,       \"width\": 924,       \"height\": 693     }   },   \"viewport\": {     \"width\": 1300,     \"height\": 1200   },   \"bestAttempt\": true,   \"userAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36\" }",
+        "body": "{ \"url\": \"https://www.goldengate.org/bridge/visiting-the-bridge/current-weather/\", \"waitForSelector\": { \"selector\": \"video[aria-label='Camera Video Player']\", \"timeout\": 20000 }, \"options\": { \"type\": \"png\", \"clip\": { \"x\": 345, \"y\": 505, \"width\": 924, \"height\": 693 } }, \"viewport\": { \"width\": 1300, \"height\": 1200 }, \"bestAttempt\": true, \"userAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36\" }",
         "options": {}
       },
-      "name": "HTTP Request: Screenshot2",
+      "name": "HTTP Request: Screenshot",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        680,
-        660
+        840,
+        1140
       ],
-      "id": "17bc58e5-54a8-41ee-9e7b-461fe06b2d5c",
+      "id": "REDACTED-ID",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "sCWycGUnmkY6AdA8",
-          "name": "Header Auth account"
+          "id": "REDACTED-ID",
+          "name": "Header Auth Browserless/Playwright"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "// Specify the desired timezone\nconst timeZone = 'America/Los_Angeles';\n\n// Get the current time in the specified timezone\nconst nowInTimeZone = new Date(new Date().toLocaleString('en-US', { timeZone }));\n\n// Extract the current hour\nconst currentHour = nowInTimeZone.getHours();\n\n// Define operational hours (5 AM to 9 PM)\nconst startHour = 5;\nconst endHour = 20;\n\n// Logging for debugging\nconsole.log(`Current timezone: ${timeZone}`);\nconsole.log(`Current time: ${nowInTimeZone.toLocaleString('en-US', { timeZone })}`);\nconsole.log(`Current hour: ${currentHour}`);\nconsole.log(`Start hour: ${startHour}`);\nconsole.log(`End hour: ${endHour}`);\n\nif (currentHour >= startHour && currentHour < endHour) {\n    console.log(`Within operational hours (${currentHour}). Proceeding.`);\n    return [{ json: { continueExecution: true } }];\n}\n\nconsole.log(`Outside operational hours (${currentHour}). Ending workflow.`);\nreturn [{ json: { continueExecution: false } }];\n"
+        "resource": "file",
+        "operation": "edit",
+        "owner": "danielraffel",
+        "repository": "ggb",
+        "filePath": "staging.ggb.screenshot.png",
+        "binaryData": true,
+        "commitMessage": "Update staging Golden Gate Bridge screenshot"
       },
-      "id": "6cf47823-d631-41d1-a696-a0d262e38788",
-      "name": "Time Check Code Node",
+      "name": "GitHub Create",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1,
+      "position": [
+        1220,
+        1140
+      ],
+      "id": "REDACTED-ID",
+      "webhookId": "REDACTED-WEBHOOK-PATH",
+      "credentials": {
+        "githubApi": {
+          "id": "REDACTED-ID",
+          "name": "GitHub account REDACTED-EMAIL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// N8N specific structure\nasync function execute() {\n    // Function to get sun times from API\n    async function getSunTimes(date, lat, lng) {\n        // Format date as YYYY-MM-DD\n        const dateStr = date.toISOString().split('T')[0];\n        \n        try {\n            const response = await fetch(\n                `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&date=${dateStr}&formatted=0`\n            );\n            \n            if (!response.ok) {\n                throw new Error(`HTTP error! status: ${response.status}`);\n            }\n            \n            const data = await response.json();\n            \n            if (data.status !== 'OK') {\n                throw new Error('API returned non-OK status');\n            }\n            \n            // API returns times in UTC\n            return {\n                sunrise: new Date(data.results.sunrise),\n                sunset: new Date(data.results.sunset),\n                civilTwilight: new Date(data.results.civil_twilight_end)\n            };\n        } catch (error) {\n            // Fallback calculations if API fails\n            function toRadians(degrees) {\n                return degrees * Math.PI / 180;\n            }\n            \n            function toDegrees(radians) {\n                return radians * 180 / Math.PI;\n            }\n            \n            function calculateSunTimes(date, lat, lng) {\n                const start = new Date(date.getFullYear(), 0, 0);\n                const diff = date - start;\n                const dayOfYear = Math.floor(diff / 86400000);\n                \n                const latRad = toRadians(lat);\n                const decl = toRadians(23.45 * Math.sin(toRadians(360/365 * (dayOfYear - 81))));\n                const hourAngleRad = Math.acos(-Math.tan(latRad) * Math.tan(decl));\n                const hourAngleDeg = toDegrees(hourAngleRad);\n                \n                const noon = 12 - lng/15;\n                const sunriseHour = noon - hourAngleDeg/15;\n                const sunsetHour = noon + hourAngleDeg/15;\n                \n                const sunriseDate = new Date(date);\n                sunriseDate.setUTCHours(Math.floor(sunriseHour));\n                sunriseDate.setUTCMinutes((sunriseHour % 1) * 60);\n                \n                const sunsetDate = new Date(date);\n                sunsetDate.setUTCHours(Math.floor(sunsetHour));\n                sunsetDate.setUTCMinutes((sunsetHour % 1) * 60);\n                \n                // Approximate civil twilight as 30 minutes after sunset\n                const civilTwilightDate = new Date(sunsetDate.getTime() + 30 * 60000);\n                \n                return {\n                    sunrise: sunriseDate,\n                    sunset: sunsetDate,\n                    civilTwilight: civilTwilightDate\n                };\n            }\n            \n            console.error('Error fetching sun times:', error);\n            return calculateSunTimes(date, lat, lng);\n        }\n    }\n\n    // Golden Gate Bridge coordinates\n    const lat = 37.8199;\n    const lng = -122.4783;\n    const timeZone = 'America/Los_Angeles';\n    \n    // Get current time in correct timezone\n    const nowInTimeZone = new Date(new Date().toLocaleString('en-US', { timeZone }));\n    \n    // Get sun times\n    const times = await getSunTimes(nowInTimeZone, lat, lng);\n    const now = new Date();\n    \n    // Convert times to local time for logging\n    const sunriseLocal = new Date(times.sunrise)\n        .toLocaleString('en-US', { timeZone });\n    const civilTwilightLocal = new Date(times.civilTwilight)\n        .toLocaleString('en-US', { timeZone });\n    \n    console.log(`Sunrise at: ${sunriseLocal}`);\n    console.log(`Civil twilight ends at: ${civilTwilightLocal}`);\n    \n    // Determine if we should take screenshot\n    // Only take screenshot if current time is between sunrise and civil twilight\n    const shouldTakeScreenshot = now >= times.sunrise && now < times.civilTwilight;\n    \n    // Return the result in n8n format\n    return [{\n        json: {\n            shouldTakeScreenshot,\n            sunriseTime: sunriseLocal,\n            civilTwilightEnd: civilTwilightLocal\n        }\n    }];\n}\n\n// N8N required execution\nreturn await execute();"
+      },
+      "id": "REDACTED-ID",
+      "name": "Time Check Code: Civil Twilight",
       "type": "n8n-nodes-base.code",
       "typeVersion": 1,
       "position": [
-        140,
-        580
-      ]
-    },
-    {
-      "parameters": {},
-      "id": "33d15de5-8a2f-4d23-bfa9-24c53f5a3950",
-      "name": "End Workflow",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [
-        460,
-        460
-      ]
-    },
-    {
-      "parameters": {},
-      "id": "26bb4de0-01ad-4704-a604-e3a2a69a8236",
-      "name": "Perform Task",
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [
-        460,
-        660
+        100,
+        1060
       ]
     },
     {
       "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "field": "minutes"
-            }
-          ]
-        }
+        "httpMethod": "POST",
+        "path": "REDACTED-WEBHOOK-PATH",
+        "authentication": "headerAuth",
+        "options": {}
       },
-      "id": "da88bda4-c258-435a-b2b7-3dd38345df9e",
-      "name": "Schedule Trigger1",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
       "position": [
-        -60,
-        580
-      ]
+        -100,
+        1260
+      ],
+      "id": "REDACTED-ID",
+      "name": "Webhook",
+      "webhookId": "REDACTED-WEBHOOK-PATH",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REDACTED-ID",
+          "name": "GGB Webhook Header Auth"
+        }
+      }
     }
   ],
+  "pinData": {},
   "connections": {
-    "Debug Function3": {
+    "Debug Function1": {
       "main": [
         [
           {
-            "node": "GitHub Create3",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "HTTP Request: Screenshot2": {
-      "main": [
-        [
-          {
-            "node": "Debug Function3",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Time Check Code Node": {
-      "main": [
-        [
-          {
-            "node": "End Workflow",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Perform Task",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Perform Task": {
-      "main": [
-        [
-          {
-            "node": "HTTP Request: Screenshot2",
+            "node": "GitHub Create",
             "type": "main",
             "index": 0
           }
@@ -186,7 +217,69 @@
       "main": [
         [
           {
-            "node": "Time Check Code Node",
+            "node": "Time Check Code: Civil Twilight",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF1": {
+      "main": [
+        [
+          {
+            "node": "Perform Task",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "End Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Perform Task": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request: Screenshot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request: Screenshot": {
+      "main": [
+        [
+          {
+            "node": "Debug Function1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Time Check Code: Civil Twilight": {
+      "main": [
+        [
+          {
+            "node": "IF1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Time Check Code: Civil Twilight",
             "type": "main",
             "index": 0
           }
@@ -194,5 +287,18 @@
       ]
     }
   },
-  "pinData": {}
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Los_Angeles",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "REDACTED-ID",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "REDACTED-ID"
+  },
+  "id": "REDACTED-ID",
+  "tags": []
 }
