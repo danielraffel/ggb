@@ -29,6 +29,53 @@ If you typically start from the same location, you can set time offsets to match
 * **Python Script**: Validates screenshot quality using image analysis with PIL and NumPy libraries.
 * **GitHub Actions**: Automatically triggers validation workflow when new screenshots are uploaded.
 
+## 🔁 Auto-Restart Script When Screenshot Stops Updating (GitHub Actions + Python)
+
+To ensure the site continues to show **up-to-date bridge conditions**, this repo includes a **GitHub Actions workflow** that **monitors the freshness** of the latest screenshot. If the image has **not been updated for 30+ minutes** during **daylight hours** (between sunrise and civil twilight in California), it automatically **SSHs into a remote server** and **restarts the screenshot capture script** (`./restart.sh n8n`).
+
+### How It Works
+
+1. **Scheduled GitHub Action** runs every 10 minutes.
+2. A **Python script** uses the [GitHub API](https://docs.github.com/en/rest/commits/commits?apiVersion=2022-11-28) to:
+   * Fetch the **last commit timestamp** for `ggb.screenshot.png`
+   * Calculate **sunrise** and **civil twilight end** using [Astral](https://astral.readthedocs.io/)
+   * Compare the current time against the most recent commit
+3. If:
+   * 30+ minutes have passed since the last commit, **and**
+   * it is currently daylight (between sunrise and civil twilight end)
+     → the workflow marks the screenshot as **stale**.
+4. If stale, the Action **SSHs into a remote server** (e.g., `your-server.example.com`) as a **limited automation user** (e.g., `youruser`) using a **restricted SSH key**, and executes `./restart.sh n8n`.
+
+### Key Implementation Details
+
+* 🌅 **Sunrise and Civil Twilight** are calculated using:
+  * Golden Gate Bridge GPS coordinates (37.8199°N, 122.4783°W)
+  * Astral library with timezone set to `America/Los_Angeles`
+* 🔐 **Secure SSH**:
+  * SSH private key is stored as a GitHub Secret: `SSH_PRIVATE_KEY`
+  * Public key on the server uses a `command="..."` restriction to limit access **only** to restarting the script
+* ⚙️ **Flexible logic**:
+  * Repo name, image path, timezone, lat/lon, and GitHub branch are configurable via environment variables
+* 🕓 **Modern GitHub Actions output handling**:
+  * Uses `$GITHUB_OUTPUT` instead of deprecated `::set-output`
+* 🧲 **Safe to run continuously**:
+  * Does nothing unless all conditions are met
+* 💡 **Fails gracefully**:
+  * If GitHub API fails or no commit is found, it logs the issue and exits cleanly
+
+### File References
+
+* **Workflow file**: `.github/workflows/check-image-and-restart.yml`
+* **Python script**: `scripts/check_image_staleness.py`
+
+### TL;DR Behavior Summary
+
+| Condition                           | Action Taken            |
+| ----------------------------------- | ----------------------- |
+| Updated <30 minutes ago             | ✅ Do nothing            |
+| Updated >30 minutes ago at night    | 🌙 Do nothing           |
+| Updated >30 minutes ago in daylight | 🔁 SSH + restart script |
+
 ## Screenshot from Live Web Cam
 
 A screenshot from the Golden Gate Bridge webcam is captured every 5 minutes, documenting its visual condition.
@@ -50,10 +97,12 @@ To ensure screenshot quality and avoid displaying bad or unusable webcam images 
 1. **Initial Upload**: The n8n workflow uploads new screenshots to `staging.ggb.screenshot.png`
 2. **Automatic Validation**: A GitHub Action is triggered when the staging file is updated
 3. **Quality Check**: A Python script (`detect_screenshot.py`) analyzes the staging image for:
+
    * **Top white bars** (>95% white pixels in top 100 pixels)
    * **Bottom white bars** (>95% white pixels in bottom 100 pixels)
    * **Completely black images** (>95% black pixels overall)
-4. **Promotion or Retry**: 
+4. **Promotion or Retry**:
+
    * If the image passes validation, it's automatically copied to `ggb.screenshot.png` (the live file) using the GitHub API
    * If validation fails, a **secure webhook** triggers the n8n workflow to capture a new image
    * The staging file remains for the next upload, ensuring no broken workflow states
@@ -89,8 +138,9 @@ Weather is only displayed for the current day, from 12:00 AM to 11:59 PM.
 ## Coming Soon
 
 An **iOS app** is currently in development, featuring:
+
 * Live monitoring widget for quick weather checks
-* Commuter widget with daily ride info 
+* Commuter widget with daily ride info
 
 ## Final Notes
 
